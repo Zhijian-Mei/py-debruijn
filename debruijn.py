@@ -58,16 +58,21 @@ def construct_graph(reads, k):
 
 
 def DFS(current, E, vec, output):
+    if current in vec:
+        return
     vec.append(current)
     if len(E[current]) == 0:
+        # print(vec)
         if vec not in output:
-            # printPath(vec)
+            result = vec[0]
+            for i in range(1,len(vec)):
+                result+=vec[i][-1]
+            print(result,len(result))
             output.append(copy.deepcopy(vec))
         vec.pop()
         return
     for i in range(len(E[current])):
         DFS(E[current][i].label, E, vec, output)
-
     vec.pop()
 
 
@@ -94,6 +99,7 @@ def output_contigs(g):
     E_copy = copy.deepcopy(E)
     print('Number of kmers have no income edges: ', len(starts))
     for start in starts:
+        print('start=', start)
         contig = start
         current = start
         # E = copy.deepcopy(E_copy)
@@ -106,12 +112,12 @@ def output_contigs(g):
         #     del E[current][0]
         #     contig += next.label[-1]
         #     current = next.label
-        print('start=', start)
-        for o in output:
-            for i in range(1,len(o)):
-                contig+=o[i][-1]
-            print(contig, len(contig))
+        # for o in output:
+        #     for i in range(1,len(o)):
+        #         contig+=o[i][-1]
+        #     print(12312312,contig, len(contig))
         print('*' * 50)
+
     quit()
 
 
