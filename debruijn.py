@@ -106,16 +106,6 @@ def output_contigs(g):
         vec = []
         output = []
         DFS(current, E, vec, output)
-        # while len(E[current]) > 0:
-        #     # Pick the next node to be traversed
-        #     next = E[current][0]
-        #     del E[current][0]
-        #     contig += next.label[-1]
-        #     current = next.label
-        # for o in output:
-        #     for i in range(1,len(o)):
-        #         contig+=o[i][-1]
-        #     print(12312312,contig, len(contig))
         print('*' * 50)
 
     quit()
