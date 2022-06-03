@@ -28,7 +28,7 @@ print(sequences)
 
 sequences = list(sequences.keys())
 
-k = 3
+k = 4
 g = db.construct_graph(sequences, k)
 # print_graph(g)
 # for k in g.keys():
