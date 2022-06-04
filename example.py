@@ -22,7 +22,7 @@ for root, dir, files in os.walk('avastin/avastin'):
 
 
 sequences = Counter(sequences)
-sequences = list(sequences.keys())[:20]
+sequences = list(sequences.keys())[:]
 print(len(sequences))
 
 
