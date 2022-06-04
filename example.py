@@ -22,10 +22,9 @@ for root, dir, files in os.walk('avastin/avastin'):
 
 
 sequences = Counter(sequences)
+sequences = list(sequences.keys())[:100]
 print(len(sequences))
-print(sequences)
 
-sequences = list(sequences.keys())
 
 k = 4
 g = db.construct_graph(sequences, k)
