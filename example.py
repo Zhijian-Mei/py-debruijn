@@ -1,7 +1,6 @@
 import os
 from collections import Counter
 import sys
-sys.setrecursionlimit(3000)
 import pandas as pd
 import debruijn as db
 
