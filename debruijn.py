@@ -58,8 +58,8 @@ def construct_graph(reads, k):
 
 
 def DFS(current, E, vec, output):
-    # if current in vec:
-    #     return
+    if current in vec:
+        return
     vec.append(current)
     if len(E[current]) == 0:
         # print(vec)
