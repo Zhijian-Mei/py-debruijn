@@ -11,7 +11,7 @@ for root, dir, files in os.walk('avastin/avastin'):
     for file in files:
         filename = root + file
         data = pd.read_csv(filename, delimiter='\t')
-        temp = data[data['Score']>0.8]
+        temp = data[data['Score']>0.6]
         temp = temp[-50<temp['PPM Difference']]
         temp = temp[temp['PPM Difference']<50]
         temp.reset_index(inplace=True)
@@ -22,16 +22,32 @@ for root, dir, files in os.walk('avastin/avastin'):
 
 
 sequences = Counter(sequences)
-sequences = list(sequences.keys())[:]
+sequences = list(sequences.keys())
 print(len(sequences))
 
 
 k = 4
-step = 100
-g = db.construct_graph(sequences, k)
-# print_graph(g)
-# for k in g.keys():
-#   print k, g[k]
-# g = construct_graph(reads)
-contig = db.output_contigs(g,step)
-print(contig)
+step = 50
+contig = []
+for i in range(0,len(sequences),step):
+    try:
+        input = sequences[i:i+step]
+    except:
+        input = sequences[i:]
+    print('number of kmer in this step: ',len(input))
+    g = db.construct_graph(input, k)
+    output = db.output_contigs(g)
+    if len(contig) == 0:
+        contig.extend(output)
+    else:
+        for j in range(len(contig)):
+            for m in range(len(output)):
+                if contig[j][-k:] == output[m][:k]:
+                    contig[j] = contig[j] + output[m][k:]
+                    output.remove(output[m])
+                elif contig[j][:k] == output[m][-k:]:
+                    contig[j] = output[m] + contig[j][k:]
+                    output.remove(output[m])
+        contig.extend(output)
+for item in contig:
+    print(item,len(item))

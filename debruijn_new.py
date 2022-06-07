@@ -84,52 +84,28 @@ def printPath(vec):
     print()
 
 
-def output_contigs(g,step):
+def output_contigs(g):
     """ Perform searching for Eulerian path in the graph to output genome assembly"""
     V = g[0]
     E = g[1]
     # Pick starting node (the vertex with zero in degree)
-    all_starts = []
+    starts = []
     for k in list(V.keys()):
         if V[k].indegree == 0:
-            all_starts.append(k)
-    # start = list(V.keys())[0]
-    # for k in list(V.keys()):
-    #     if V[k].indegree < V[start].indegree:
-    #         start = k
-    print('Number of kmers have no income edges: ', len(all_starts))
+            starts.append(k)
+    print('Number of kmers have no income edges: ', len(starts))
     contig = []
-    for i in range(0,len(all_starts),step):
-        try:
-            starts = all_starts[i:i+step]
-        except:
-            starts = all_starts[i:]
-        print('number of start kmer in this step: ',len(starts))
-        for start in starts:
-            print('start=', start)
-            current = start
-            vec = []
-            output = []
-            contig_copy = []
-            DFS(current, E, vec, output,contig_copy)
-            if len(contig) == 0:
-                contig.extend(contig_copy)
-            else:
-                for j in range(len(contig)):
-                    for k in range(len(contig_copy)):
-                        if contig[j][-4:] == contig_copy[k][:4]:
-                            contig[j] = contig[j]+contig_copy[k][4:]
-                            contig_copy.remove(contig_copy[k])
-                        elif contig[j][:4] == contig_copy[k][-4:]:
-                            contig[j] = contig_copy[k] + contig[j][4:]
-                            contig_copy.remove(contig_copy[k])
-                contig.extend(contig_copy)
-            print('*' * 50)
-    for item in contig:
-        print(item,len(item))
-    print('Concatenation finished')
-    quit()
+    for start in starts:
+        print('start=', start)
+        current = start
+        vec = []
+        output = []
+        contig_copy = []
+        DFS(current, E, vec, output,contig_copy)
+        contig.extend(contig_copy)
+        print('*' * 50)
 
+    return contig
 
 
 def print_graph(g):
