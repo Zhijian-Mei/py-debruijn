@@ -11,7 +11,7 @@ for root, dir, files in os.walk('avastin/avastin'):
     for file in files:
         filename = root + file
         data = pd.read_csv(filename, delimiter='\t')
-        temp = data[data['Score']>0.9]
+        temp = data[data['Score']>0.8]
         temp = temp[-50<temp['PPM Difference']]
         temp = temp[temp['PPM Difference']<50]
         temp.reset_index(inplace=True)

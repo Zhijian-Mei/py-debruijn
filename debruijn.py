@@ -107,7 +107,7 @@ def output_contigs(g):
         output = []
         DFS(current, E, vec, output)
         print('*' * 50)
-
+    print('Concatenation finished')
     quit()
 
 
