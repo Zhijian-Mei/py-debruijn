@@ -40,14 +40,14 @@ for i in range(0,len(sequences),step):
     if len(contig) == 0:
         contig.extend(output)
     else:
-        for j in range(len(contig)):
-            for m in range(len(output)):
-                if contig[j][-k:] == output[m][:k]:
-                    contig[j] = contig[j] + output[m][k:]
-                    output.remove(output[m])
-                elif contig[j][:k] == output[m][-k:]:
-                    contig[j] = output[m] + contig[j][k:]
-                    output.remove(output[m])
+        for j in contig:
+            for m in output:
+                if j[-k:] == m[:k]:
+                    j = j + m[k:]
+                    output.remove(m)
+                elif j[:k] == m[-k:]:
+                    j = m + j[k:]
+                    output.remove(m)
         contig.extend(output)
 for item in contig:
     print(item,len(item))
