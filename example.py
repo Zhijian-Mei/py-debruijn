@@ -2,7 +2,7 @@ import os
 from collections import Counter
 import sys
 import pandas as pd
-import debruijn as db
+import test_debruijn as db
 
 sequences = []
 sequences_scores = []
@@ -11,7 +11,7 @@ for root, dir, files in os.walk('avastin/avastin'):
     for file in files:
         filename = root + file
         data = pd.read_csv(filename, delimiter='\t')
-        temp = data[data['Score']>0.8]
+        temp = data[data['Score']>0.6]
         temp = temp[-50<temp['PPM Difference']]
         temp = temp[temp['PPM Difference']<50]
         temp.reset_index(inplace=True)
@@ -26,11 +26,15 @@ sequences = list(sequences.keys())[:]
 print(len(sequences))
 
 
-k = 4
-g = db.construct_graph(sequences, k)
+k = 5
+g = db.construct_graph(sequences, k,threshold=5)
 # print_graph(g)
 # for k in g.keys():
 #   print k, g[k]
 # g = construct_graph(reads)
 contig = db.output_contigs(g)
-print(contig)
+contig.sort(key=lambda x:len(x))
+for item in contig:
+    if 'EVQL'in item or 'DIQM' in item:
+        print(item,len(item))
+

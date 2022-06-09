@@ -1,6 +1,8 @@
 import copy
 from collections import Counter
 
+from tqdm import trange
+
 
 class Node:
     """ Class Node to represent a vertex in the de bruijn graph """
@@ -29,7 +31,7 @@ def read_reads(fname):
     return reads
 
 
-def construct_graph(reads, k):
+def construct_graph(reads, k,threshold=3):
     """ Construct de bruijn graph from sets of short reads with k length word"""
     edges = dict()
     vertices = dict()
@@ -41,11 +43,11 @@ def construct_graph(reads, k):
             v2 = read[i + 1:i + k + 1]
             if v1 in edges.keys():
                 vertices[v1].outdegree += 1
-                edges[v1] += [Edge(v2)]
+                edges[v1] += [v2]
             else:
                 vertices[v1] = Node(v1)
                 vertices[v1].outdegree += 1
-                edges[v1] = [Edge(v2)]
+                edges[v1] = [v2]
             if v2 in edges.keys():
                 vertices[v2].indegree += 1
             else:
@@ -53,6 +55,23 @@ def construct_graph(reads, k):
                 vertices[v2].indegree += 1
                 edges[v2] = []
             i += 1
+
+    for edge in edges:
+        previous = edges[edge]
+        counter = Counter(previous)
+        if len(counter) == 0:
+            continue
+        if len(counter) == 1:
+            edges[edge] = list(counter)
+        else:
+            maxCountKmer = [counter.most_common(1)[0][0]]
+            maxCount = counter.most_common(1)[0][1]
+            for i in range(1,len(counter)):
+                nextCount = counter.most_common()[i][1]
+                if nextCount >= maxCount/threshold:
+                    maxCountKmer += [counter.most_common()[i][0]]
+            edges[edge] = maxCountKmer
+
 
     return (vertices, edges)
 
@@ -66,13 +85,13 @@ def DFS(current, E, vec, output,contig_copy):
             result = vec[0]
             for i in range(1,len(vec)):
                 result+=vec[i][-1]
-            print(result,len(result))
+            # print(result,len(result))
             output.append(copy.deepcopy(vec))
             contig_copy.append(result)
         vec.pop()
         return
     for i in range(len(E[current])):
-        DFS(E[current][i].label, E, vec, output,contig_copy)
+        DFS(E[current][i], E, vec, output,contig_copy)
     vec.pop()
 
 
@@ -87,8 +106,6 @@ def output_contigs(g):
     """ Perform searching for Eulerian path in the graph to output genome assembly"""
     V = g[0]
     E = g[1]
-    print(E)
-    quit()
     # Pick starting node (the vertex with zero in degree)
     starts = []
     for k in list(V.keys()):
@@ -96,7 +113,8 @@ def output_contigs(g):
             starts.append(k)
     print('Number of kmers have no income edges: ', len(starts))
     contig = []
-    for start in starts:
+    for i in trange(len(starts)):
+        start = starts[i]
         print('start=', start)
         current = start
         vec = []
@@ -117,5 +135,5 @@ def print_graph(g):
         print("name: ", V[k].label, ". indegree: ", V[k].indegree, ". outdegree: ", V[k].outdegree)
         print("Edges: ")
         for e in E[k]:
-            print(e.label)
+            print(e)
         print()
