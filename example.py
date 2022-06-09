@@ -11,7 +11,7 @@ for root, dir, files in os.walk('avastin/avastin'):
     for file in files:
         filename = root + file
         data = pd.read_csv(filename, delimiter='\t')
-        temp = data[data['Score']>0.6]
+        temp = data[data['Score']>0.1]
         temp = temp[-50<temp['PPM Difference']]
         temp = temp[temp['PPM Difference']<50]
         temp.reset_index(inplace=True)
@@ -27,7 +27,7 @@ print(len(sequences))
 
 
 k = 5
-g = db.construct_graph(sequences, k,threshold=5)
+g = db.construct_graph(sequences, k,threshold=3)
 # print_graph(g)
 # for k in g.keys():
 #   print k, g[k]
