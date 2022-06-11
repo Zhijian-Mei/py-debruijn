@@ -1,6 +1,7 @@
 import copy
 from collections import Counter
-
+import sys
+sys.setrecursionlimit(3000)
 from tqdm import trange
 
 
@@ -31,12 +32,14 @@ def read_reads(fname):
     return reads
 
 
-def construct_graph(reads, k,threshold=3):
+def construct_graph(reads, k, threshold=3):
     """ Construct de bruijn graph from sets of short reads with k length word"""
     edges = dict()
     vertices = dict()
+    pull_out_read = []
 
-    for read in reads:
+    for index in trange(len(reads)):
+        read = reads[index]
         i = 0
         while i + k < len(read):
             v1 = read[i:i + k]
@@ -56,6 +59,7 @@ def construct_graph(reads, k,threshold=3):
                 edges[v2] = []
             i += 1
 
+    print(1)
     for edge in edges:
         previous = edges[edge]
         counter = Counter(previous)
@@ -66,32 +70,61 @@ def construct_graph(reads, k,threshold=3):
         else:
             maxCountKmer = [counter.most_common(1)[0][0]]
             maxCount = counter.most_common(1)[0][1]
-            for i in range(1,len(counter)):
+            for i in range(1, len(counter)):
                 nextCount = counter.most_common()[i][1]
-                if nextCount >= maxCount/threshold:
+                if nextCount >= maxCount / threshold:
                     maxCountKmer += [counter.most_common()[i][0]]
             edges[edge] = maxCountKmer
 
+    # current = edges['GPSVFP']
+    # while current:
+    #     if 'VTVSWN' in current:
+    #         next = 'VTVSWN'
+    #         current = edges[next]
+    #         print(current)
+    #         continue
+    #     next = current[0]
+    #     current = edges[next]
+    #     print(current)
+    #
+    # quit()
 
-    return (vertices, edges)
+    print(2)
+    pull_out_kmer = []
+    for edge in list(edges):
+        if len(edges[edge]) > 1:
+            for e in edges[edge]:
+                pull_out_kmer.append([edge,e])
+    print(3)
+    if k != 6:
+        for index in trange(len(reads)):
+            read = reads[index]
+            for kmer_pair in pull_out_kmer:
+                if kmer_pair[0] in read and kmer_pair[1] in read:
+                    if read not in pull_out_read:
+                        pull_out_read.append(read)
+
+    print(4)
+
+    return (vertices, edges), pull_out_read
 
 
-def DFS(current, E, vec, output,contig_copy):
+def DFS(current, E, vec, output, contig_copy):
     if current in vec:
         return
     vec.append(current)
     if len(E[current]) == 0:
         if vec not in output:
             result = vec[0]
-            for i in range(1,len(vec)):
-                result+=vec[i][-1]
+            for i in range(1, len(vec)):
+                result += vec[i][-1]
             # print(result,len(result))
             output.append(copy.deepcopy(vec))
             contig_copy.append(result)
         vec.pop()
         return
     for i in range(len(E[current])):
-        DFS(E[current][i], E, vec, output,contig_copy)
+        DFS(E[current][i], E, vec, output, contig_copy)
     vec.pop()
 
 
@@ -115,14 +148,14 @@ def output_contigs(g):
     contig = []
     for i in trange(len(starts)):
         start = starts[i]
-        print('start=', start)
+        # print('start=', start)
         current = start
         vec = []
         output = []
         contig_copy = []
-        DFS(current, E, vec, output,contig_copy)
+        DFS(current, E, vec, output, contig_copy)
         contig.extend(contig_copy)
-        print('*' * 50)
+        # print('*' * 50)
 
     return contig
 
