@@ -8,7 +8,7 @@ import test_debruijn as db
 
 sequences = []
 sequences_scores = []
-for root, dir, files in os.walk('avastin/avastin'):
+for root, dir, files in os.walk('BSA/all'):
     root = root + '/'
     for file in files:
         filename = root + file
@@ -39,7 +39,7 @@ for k in range(k_lowerlimit,k_upperlimit+1):
         g, pull_out_read, pull_out_kmer = db.construct_graph(sequences, k, threshold=2, final=True)
     sequences = db.output_contigs(g,pull_out_kmer)
     sequences.sort(key=lambda x: len(x))
-    outFile = open('avastin_{}mer.fasta'.format(k),mode='a+')
+    outFile = open('BSA_{}mer.fasta'.format(k),mode='a+')
     for i in range(len(sequences)):
         outFile.writelines('>SEQUENCE_{}\n{}\n'.format(i,sequences[i]))
     outFile.close()
