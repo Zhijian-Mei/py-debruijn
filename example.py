@@ -1,18 +1,19 @@
 import os
+
 from collections import Counter
 import sys
-sys.setrecursionlimit(3000)
+sys.setrecursionlimit(10000)
 import pandas as pd
 import test_debruijn as db
 
 sequences = []
 sequences_scores = []
-for root, dir, files in os.walk('BSA/all'):
+for root, dir, files in os.walk('avastin/avastin'):
     root = root + '/'
     for file in files:
         filename = root + file
-        print(filename)
         data = pd.read_csv(filename, delimiter='\t')
+        # temp = data
         temp = data[data['Score']>=0.1]
         temp = temp[-50<temp['PPM Difference']]
         temp = temp[temp['PPM Difference']<50]
@@ -30,26 +31,28 @@ print(len(sequences))
 # sequences = ['EVQLVESGGGLVQPGGSLRLSCAASGYTFTNYGMNWVRQAPGKGLEWVGWLNTYTGEPTYAADFKRRFTFSLDTSKSTAYLQMNSLRAEDTAVYYCAKYPHYYGSSHWYFDVWGQGTLVTVSSASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYLCNVNHKPSNTKVDKKVEPKSCDKTHTCPPCPAPELLGGPSVFLFPPKPKDTLMLSRTPEVTCVVVDVSHEDPEVKFNWYVDGVEVHNAKTKPREEQYNSTYRVVSVLTVLHQDWLNGKEYKCKVSNKALPAPLEKTLSKAKGQPREPQVYTLPPSREEMTKNQVSLTCLVKGFYPSDLAVEWESNGQPENNYKTTPPVLDSDGSFFLYSKLTVDKSRWQQGNVFSCSVMHEALHNHYTQKSLSLSPGK']
 
 k_lowerlimit = 5
-k_upperlimit = 6
+k_upperlimit = 10
 for k in range(k_lowerlimit,k_upperlimit+1):
-    print('number of input for k={}'.format(k), len(sequences))
-    g, pull_out_read = db.construct_graph(sequences, k, threshold=2)
-    sequences = db.output_contigs(g)
+    if k <= k_upperlimit-1:
+        g, pull_out_read,pull_out_kmer = db.construct_graph(sequences, k, threshold=2)
+    else:
+        g, pull_out_read, pull_out_kmer = db.construct_graph(sequences, k, threshold=2, final=True)
+    sequences = db.output_contigs(g,pull_out_kmer)
     sequences.sort(key=lambda x: len(x))
-    # sequences = [sequence for sequence in sequences if len(sequence) > 200]
-    print('number of output has length > 200: ',len(sequences))
-    for item in sequences:
-        if 'MKWV' in item:
-            print(item,len(item))
+    outFile = open('avastin_{}mer.fasta'.format(k),mode='a+')
+    for i in range(len(sequences)):
+        outFile.writelines('>SEQUENCE_{}\n{}\n'.format(i,sequences[i]))
+    outFile.close()
+    print('max length: ',len(sequences[-1]))
+    print('number of output for k={}: '.format(k),len(sequences))
     if k <= k_upperlimit-1:
         sequences.extend(pull_out_read)
         print('number of pull out read: ',len(pull_out_read))
 
 
 
-contig = sequences
-contig.sort(key=lambda x:len(x))
-# for item in contig:
-    # if 'MKWVT' in item:
-    # print(item,len(item))
 
+
+# print('*' * 100)
+# for item in contig:
+#     print(item,len(item))

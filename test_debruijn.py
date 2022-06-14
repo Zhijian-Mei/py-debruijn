@@ -1,7 +1,8 @@
 import copy
 from collections import Counter
 import sys
-sys.setrecursionlimit(3000)
+
+sys.setrecursionlimit(10000)
 from tqdm import trange
 
 
@@ -32,12 +33,53 @@ def read_reads(fname):
     return reads
 
 
-def construct_graph(reads, k, threshold=3):
-    """ Construct de bruijn graph from sets of short reads with k length word"""
+def get_kmer_count_from_sequence(sequences, k):
+    """
+    Returns dictionary with keys representing all possible kmers in a sequence
+    and values counting their occurrence in the sequence.
+    """
+    # dict to store kmers
+    kmers = {}
+    for sequence in sequences:
+        # count how many times each occurred in this sequence (treated as cyclic)
+        for i in range(len(sequence)):
+            kmer = sequence[i:i + k]
+
+            # for cyclic sequence get kmers that wrap from end to beginning
+            if len(kmer) != k:
+                continue
+            # count occurrence of this kmer in sequence
+            if kmer in kmers:
+                kmers[kmer] += 1
+            else:
+                kmers[kmer] = 1
+
+    return kmers
+
+
+def get_graph_from_kmers(kmers, k):
     edges = dict()
     vertices = dict()
-    pull_out_read = []
+    for index in trange(len(kmers)):
+        kmer = kmers[index]
+        vertices[kmer] = Node(kmer)
+        edges[kmer] = []
+        for edge in edges:
+            if kmer[1:] == edge[:k - 1]:  # kmer -> edge
+                edges[kmer] += [edge]
+                vertices[kmer].outdegree += 1
+                vertices[edge].indegree += 1
+            if kmer[:k - 1] == edge[1:]:  # edge -> kmer
+                edges[edge] += [kmer]
+                vertices[edge].outdegree += 1
+                vertices[kmer].indegree += 1
 
+    return vertices, edges
+
+
+def get_graph_from_reads(reads, k):
+    edges = dict()
+    vertices = dict()
     for index in trange(len(reads)):
         read = reads[index]
         i = 0
@@ -58,8 +100,10 @@ def construct_graph(reads, k, threshold=3):
                 vertices[v2].indegree += 1
                 edges[v2] = []
             i += 1
+    return vertices, edges
 
-    print(1)
+
+def puringEdge(edges, threshold):
     for edge in edges:
         previous = edges[edge]
         counter = Counter(previous)
@@ -75,41 +119,46 @@ def construct_graph(reads, k, threshold=3):
                 if nextCount >= maxCount / threshold:
                     maxCountKmer += [counter.most_common()[i][0]]
             edges[edge] = maxCountKmer
+    return edges
 
-    # current = edges['GPSVFP']
-    # while current:
-    #     if 'VTVSWN' in current:
-    #         next = 'VTVSWN'
-    #         current = edges[next]
-    #         print(current)
-    #         continue
-    #     next = current[0]
-    #     current = edges[next]
-    #     print(current)
-    #
-    # quit()
 
-    print(2)
+def construct_graph(reads, k, threshold=3, final=False):
+    """ Construct de bruijn graph from sets of short reads with k length word"""
+    pull_out_read = []
+    # kmers = list(get_kmer_count_from_sequence(reads, k))
+    # print('number of input kmers for k={}'.format(k), len(kmers))
+    # vertices,edges = get_graph_from_kmers(kmers,k)
+
+    vertices, edges = get_graph_from_reads(reads, k)
+
     pull_out_kmer = []
+    count = 0
     for edge in list(edges):
         if len(edges[edge]) > 1:
-            for e in edges[edge]:
-                pull_out_kmer.append([edge,e])
-    print(3)
-    if k != 6:
+            count += 1
+            pull_out_kmer.append(edge)
+    print('branch number: ', count)
+
+    edges = puringEdge(edges, threshold)
+
+    if not final:
         for index in trange(len(reads)):
             read = reads[index]
-            for kmer_pair in pull_out_kmer:
-                if kmer_pair[0] in read and kmer_pair[1] in read:
-                    if read not in pull_out_read:
-                        pull_out_read.append(read)
-
-    print(4)
-
-    return (vertices, edges), pull_out_read
+            for kmer in pull_out_kmer:
+                if kmer in read:
+                    pull_out_read.append(read)
+                    break
 
 
-def DFS(current, E, vec, output, contig_copy):
+        # vertices_copy = copy.deepcopy(vertices)
+        # for v in vertices_copy:
+        #     if v in pull_out_kmer:
+        #         vertices.pop(v)
+
+    return (vertices, edges), pull_out_read, pull_out_kmer
+
+
+def DFS(current, E, vec, output, contig_copy, pull_out_kmer):
     if current in vec:
         return
     vec.append(current)
@@ -124,7 +173,7 @@ def DFS(current, E, vec, output, contig_copy):
         vec.pop()
         return
     for i in range(len(E[current])):
-        DFS(E[current][i], E, vec, output, contig_copy)
+        DFS(E[current][i], E, vec, output, contig_copy, pull_out_kmer)
     vec.pop()
 
 
@@ -135,7 +184,7 @@ def printPath(vec):
     print()
 
 
-def output_contigs(g):
+def output_contigs(g, pull_out_kmer):
     """ Perform searching for Eulerian path in the graph to output genome assembly"""
     V = g[0]
     E = g[1]
@@ -153,7 +202,7 @@ def output_contigs(g):
         vec = []
         output = []
         contig_copy = []
-        DFS(current, E, vec, output, contig_copy)
+        DFS(current, E, vec, output, contig_copy, pull_out_kmer)
         contig.extend(contig_copy)
         # print('*' * 50)
 
