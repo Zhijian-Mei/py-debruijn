@@ -87,23 +87,26 @@ def get_graph_from_reads(reads, k):
             v1 = read[i:i + k]
             v2 = read[i + 1:i + k + 1]
             if v1 in edges.keys():
-                vertices[v1].outdegree += 1
+                if v2 not in edges[v1]:
+                    vertices[v1].outdegree += 1
                 edges[v1] += [v2]
             else:
                 vertices[v1] = Node(v1)
                 vertices[v1].outdegree += 1
                 edges[v1] = [v2]
             if v2 in edges.keys():
-                vertices[v2].indegree += 1
+                if v2 not in edges[v1]:
+                    vertices[v2].indegree += 1
             else:
                 vertices[v2] = Node(v2)
                 vertices[v2].indegree += 1
                 edges[v2] = []
             i += 1
+
     return vertices, edges
 
 
-def puringEdge(edges, threshold):
+def pruningEdges(edges, threshold):
     for edge in edges:
         previous = edges[edge]
         counter = Counter(previous)
@@ -122,6 +125,45 @@ def puringEdge(edges, threshold):
     return edges
 
 
+def pruningErrorContigFromBranch(current, edges, vertices, vec, output, depth, already_pull_out):
+    if depth == 0:
+        return
+    vec.append(current)
+    if vertices[current].outdegree == 0:
+        if vec not in output:
+            output.append(copy.deepcopy(vec))
+        vec.pop()
+        return
+    elif vertices[current].indegree > 1:
+        vec.pop()
+        if vec not in output:
+            output.append(copy.deepcopy(vec))
+        return
+    for i in range(len(edges[current])):
+        if edges[current][i] not in already_pull_out:
+            pruningErrorContigFromBranch(edges[current][i], edges, vertices, vec, output, depth - 1, already_pull_out)
+    vec.pop()
+
+
+
+def pruningErrorContigFromHead(current, edges, vertices, vec, output, depth, already_pull_out, edge_count_table):
+    if depth == 0 or current in already_pull_out:
+        return
+    vec.append(current)
+    if vertices[current].indegree > 1:
+        name = vec[-2] + vec[-1][-1]
+        vec.pop()
+        if vec not in output:
+            if edge_count_table[name] < 2:
+                print(name)
+                output.append(copy.deepcopy(vec))
+        return
+    for i in range(len(edges[current])):
+        pruningErrorContigFromHead(edges[current][i], edges, vertices, vec, output, depth - 1, already_pull_out,
+                                   edge_count_table)
+    vec.pop()
+
+
 def construct_graph(reads, k, threshold=3, final=False):
     """ Construct de bruijn graph from sets of short reads with k length word"""
     pull_out_read = []
@@ -130,39 +172,92 @@ def construct_graph(reads, k, threshold=3, final=False):
     # vertices,edges = get_graph_from_kmers(kmers,k)
 
     vertices, edges = get_graph_from_reads(reads, k)
+    edge_count_table = dict()
+    for edge in edges:
+        counter = Counter(edges[edge])
+        for i in list(counter.keys()):
+            edge_name = edge + i[-1]
+            count = counter[i]
+            if edge_name not in edge_count_table.keys():
+                edge_count_table[edge_name] = count
+            else:
+                edge_count_table[edge_name] = count + edge_count_table[edge_name]
 
-    pull_out_kmer = []
+    print('number of {}mer: '.format(k), len(vertices))
+
+    edges = pruningEdges(edges, threshold)
+
+    branch_kmer = []
     count = 0
     for edge in list(edges):
         if len(edges[edge]) > 1:
             count += 1
-            pull_out_kmer.append(edge)
+            branch_kmer.append(edge)
     print('branch number: ', count)
 
-    edges = puringEdge(edges, threshold)
+
+    already_pull_out = []
+    for kmer in branch_kmer:
+        vec = []
+        output = []
+        if kmer in already_pull_out:
+            continue
+        pruningErrorContigFromBranch(kmer, edges, vertices, vec, output, 15, already_pull_out)
+        for o in output:
+            for item in o:
+                if item not in already_pull_out and item not in branch_kmer:
+                    already_pull_out.append(item)
+                    edges.pop(item)
+
+    starts = []
+    for k in list(vertices.keys()):
+        if vertices[k].indegree == 0:
+            starts.append(k)
+
+    for start in starts:
+        vec = []
+        output = []
+        pruningErrorContigFromHead(start, edges, vertices, vec, output, 5, already_pull_out, edge_count_table)
+        for o in output:
+            for item in o:
+                if item not in already_pull_out and item not in branch_kmer:
+                    already_pull_out.append(item)
+                    edges.pop(item)
 
     if not final:
         for index in trange(len(reads)):
             read = reads[index]
-            for kmer in pull_out_kmer:
+            for kmer in branch_kmer:
                 if kmer in read:
                     pull_out_read.append(read)
                     break
 
-
-        # vertices_copy = copy.deepcopy(vertices)
-        # for v in vertices_copy:
-        #     if v in pull_out_kmer:
-        #         vertices.pop(v)
-
-    return (vertices, edges), pull_out_read, pull_out_kmer
+    if final:
+        pull_out_read = []
+        branch_kmer = []
 
 
-def DFS(current, E, vec, output, contig_copy, pull_out_kmer):
+    return (vertices, edges), pull_out_read, branch_kmer, already_pull_out, edge_count_table
+
+
+def DFS(current, E, vec, output, contig_copy, branch_kmer, already_pull_out):
     if current in vec:
         return
     vec.append(current)
-    if len(E[current]) == 0:
+    if current in already_pull_out:
+        if len(vec) == 1:
+            vec.pop()
+            return
+        vec.pop()
+        if vec not in output:
+            result = vec[0]
+            for i in range(1, len(vec)):
+                result += vec[i][-1]
+            # print(result,len(result))
+            output.append(copy.deepcopy(vec))
+            contig_copy.append(result)
+        return
+    if current in branch_kmer or len(E[current]) == 0:
         if vec not in output:
             result = vec[0]
             for i in range(1, len(vec)):
@@ -173,7 +268,7 @@ def DFS(current, E, vec, output, contig_copy, pull_out_kmer):
         vec.pop()
         return
     for i in range(len(E[current])):
-        DFS(E[current][i], E, vec, output, contig_copy, pull_out_kmer)
+        DFS(E[current][i], E, vec, output, contig_copy, branch_kmer, already_pull_out)
     vec.pop()
 
 
@@ -184,7 +279,7 @@ def printPath(vec):
     print()
 
 
-def output_contigs(g, pull_out_kmer):
+def output_contigs(g, branch_kmer, already_pull_out):
     """ Perform searching for Eulerian path in the graph to output genome assembly"""
     V = g[0]
     E = g[1]
@@ -193,6 +288,7 @@ def output_contigs(g, pull_out_kmer):
     for k in list(V.keys()):
         if V[k].indegree == 0:
             starts.append(k)
+
     print('Number of kmers have no income edges: ', len(starts))
     contig = []
     for i in trange(len(starts)):
@@ -202,7 +298,7 @@ def output_contigs(g, pull_out_kmer):
         vec = []
         output = []
         contig_copy = []
-        DFS(current, E, vec, output, contig_copy, pull_out_kmer)
+        DFS(current, E, vec, output, contig_copy, branch_kmer, already_pull_out)
         contig.extend(contig_copy)
         # print('*' * 50)
 

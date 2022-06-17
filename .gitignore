@@ -12,3 +12,5 @@
 *.fa
 *.zip
 test.py
+*.tar
+*.tgz
