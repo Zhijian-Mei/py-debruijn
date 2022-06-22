@@ -62,8 +62,6 @@ with open(f'{froot}/Report.json', 'w') as fw:
         json_block['Contig sequence'] = contig
         json_block['Length'] = len(contig)
         json_block['Score Sum'] = scores[i]
-        json_block['Supported reads Count(Not Unique)'] = len(support_reads)
-        json_block['Supported reads Count(Unique)'] = len(Counter(support_reads))
         temp = []
         for j in trange(len(df)):
             read = df['DENOVO'][j]
