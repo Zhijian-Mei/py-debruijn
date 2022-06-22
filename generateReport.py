@@ -1,44 +1,77 @@
+import json
 import os
+from collections import Counter
 
 import pandas as pd
 from tqdm import trange
 
 from test_debruijn import read_reads
 
-def findSupportReadScore(contig,score_table):
-    score = 0
-    for read in score_table.keys():
-        if read in contig:
-            score += sequences_scores[read]
-    return score
 
+def read_scores(fp):
+    f = open(fp, 'r')
+    lines = f.readlines()
+    f.close()
+    scores = []
 
-fname = 'avastin_5-10mer_0.5_modified'
+    for line in lines:
+        if line[0] == '>':
+            scores.append(float(line.split('_')[-1].strip()))
+    return scores
 
-filePath='avastin/avastin'
-score_cut = 0.5
-sequences_scores = dict()
-for root, dir, files in os.walk(filePath):
+def standard(readInfo):
+
+    output = {}
+    output['TITLE'] = readInfo[0]
+    output['DENOVO'] = readInfo[1]
+    output['Score'] = readInfo[2]
+    output['PPM Difference'] = readInfo[3]
+    output['Positional Score'] = readInfo[4]
+    output['MATCHED'] = readInfo[5]
+    return output
+
+df = pd.DataFrame()
+
+froot = 'avastin_5-10mer_0.6_2'
+outputfile = f'{froot}/{froot}_modified_sorted.fasta'
+settingFile = open(f'{froot}/setting.json','r')
+setting = json.load(settingFile)
+souceFilePath='avastin/avastin'
+for root, dir, files in os.walk(souceFilePath):
     root = root + '/'
     for file in files:
         filename = root + file
         data = pd.read_csv(filename, delimiter='\t')
-        temp = data[data['Score'] >= score_cut]
-        temp = temp[-50 < temp['PPM Difference']]
-        temp = temp[temp['PPM Difference'] < 50]
-        temp.reset_index(inplace=True)
-        for i in range(len(temp)):
-            if temp['DENOVO'][i] not in sequences_scores.keys():
-                sequences_scores[temp['DENOVO'][i]] = temp['Score'][i]
-            else:
-                sequences_scores[temp['DENOVO'][i]] = temp['Score'][i] + sequences_scores[temp['DENOVO'][i]]
+        temp = data[data['Score'] >= setting['score_cut']]
+        temp = temp[-50<temp['PPM Difference']]
+        temp = temp[temp['PPM Difference']<50]
+        temp.reset_index(inplace=True,drop=True)
+        df = df.append(temp)
+df.reset_index(inplace=True,drop=True)
 
-contigs = read_reads(fname+'.fasta')
-scores = []
 
-k=10
-contigs.sort(key=lambda x:findSupportReadScore(x,score_table=sequences_scores),reverse=True)
-outFile = open(fname+'_sorted.fasta', mode='a+')
-for i in range(len(contigs)):
-    outFile.writelines('>SEQUENCE_{}_{}mer_{}\n{}\n'.format(i,k,round(findSupportReadScore(contigs[i],sequences_scores),2),contigs[i]))
-outFile.close()
+
+scores = read_scores(outputfile)
+contigs = read_reads(outputfile)
+
+
+with open('test.json','w') as fw:
+    for i in range(len(contigs)):
+        contig = contigs[i]
+        json_block = dict()
+        support_reads = []
+        json_block['index'] = i+1
+        json_block['Contig sequence'] = contig
+        json_block['Length'] = len(contig)
+        json_block['Supported reads Information'] = []
+        for j in trange(len(df)):
+            read = df['DENOVO'][j]
+            if read in contig:
+                support_reads.append(read)
+                readInfo = standard(df.values[j])
+                json_block['Supported reads Information'] += [readInfo]
+        json_block['Supported reads Count(Not Unique)'] = len(support_reads)
+        json_block['Supported reads Count(Unique)'] = len(Counter(support_reads))
+        json.dump(json_block,fw,indent=4)
+        fw.write('\n')
+        quit()

@@ -1,3 +1,4 @@
+import json
 import os
 
 from collections import Counter
@@ -16,27 +17,27 @@ def getScore(edge_count_table, contig, k):
 
 
 sequences = []
-sequences_scores = []
 score_cut = 0.5
-threshold = 3
+threshold = 2
+
 for root, dir, files in os.walk('avastin/avastin'):
     root = root + '/'
     for file in files:
         filename = root + file
         data = pd.read_csv(filename, delimiter='\t')
         temp = data[data['Score'] >= score_cut]
-        temp = temp[-50 < temp['PPM Difference']]
-        temp = temp[temp['PPM Difference'] < 50]
+        temp = temp[-50<temp['PPM Difference']]
+        temp = temp[temp['PPM Difference']<50]
+        sequences.extend(temp['DENOVO'].values)
         temp.reset_index(inplace=True)
         sequences.extend(temp['DENOVO'].values)
-
+        for i in range(len(temp)):
+            sequences.append(temp['DENOVO'][i])
 
 sequences = Counter(sequences)
 sequences = list(sequences.keys())
 print(len(sequences))
 
-# sequences = [
-# 'EVQLVESGGGLVQPGGSLRLSCAASGYTFTNYGMNWVRQAPGKGLEWVGWLNTYTGEPTYAADFKRRFTFSLDTSKSTAYLQMNSLRAEDTAVYYCAKYPHYYGSSHWYFDVWGQGTLVTVSSASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYLCNVNHKPSNTKVDKKVEPKSCDKTHTCPPCPAPELLGGPSVFLFPPKPKDTLMLSRTPEVTCVVVDVSHEDPEVKFNWYVDGVEVHNAKTKPREEQYNSTYRVVSVLTVLHQDWLNGKEYKCKVSNKALPAPLEKTLSKAKGQPREPQVYTLPPSREEMTKNQVSLTCLVKGFYPSDLAVEWESNGQPENNYKTTPPVLDSDGSFFLYSKLTVDKSRWQQGNVFSCSVMHEALHNHYTQKSLSLSPGK']
 
 k_lowerlimit = 5
 k_upperlimit = 10
@@ -51,7 +52,13 @@ for k in range(k_lowerlimit, k_upperlimit + 1):
     sequences = db.output_contigs(g, branch_kmer, already_pull_out)
     sequences.sort(key=lambda x: getScore(edge_count_table, x, k), reverse=True)
     if k == k_upperlimit:
-        outFile = open('avastin_{}-{}mer_{}.fasta'.format(k_lowerlimit,k, score_cut), mode='a+')
+        froot = 'avastin_{}-{}mer_{}_{}'.format(k_lowerlimit,k_upperlimit, score_cut,threshold)
+        os.mkdir(froot)
+        setting = {'score_cut': score_cut, 'threshold': threshold, 'k_lowerlimit': k_lowerlimit,
+                   'k_upperlimit': k_upperlimit}
+        with open(f'{froot}/setting.json','w') as fw:
+            json.dump(setting,fw,indent=4)
+        outFile = open(f'{froot}/{froot}.fasta', mode='a+')
         for i in range(len(sequences)):
             outFile.writelines('>SEQUENCE_{}_{}mer\n{}\n'.format(i, k, sequences[i]))
         outFile.close()
@@ -61,7 +68,3 @@ for k in range(k_lowerlimit, k_upperlimit + 1):
         sequences.extend(pull_out_read)
         print('number of pull out read: ', len(pull_out_read))
 
-
-# print('*' * 100)
-# for item in contig:
-#     print(item,len(item))

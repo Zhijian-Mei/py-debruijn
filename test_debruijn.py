@@ -167,10 +167,6 @@ def pruningErrorContigFromHead(current, edges, vertices, vec, output, depth, alr
 def construct_graph(reads, k, threshold=3, final=False):
     """ Construct de bruijn graph from sets of short reads with k length word"""
     pull_out_read = []
-    # kmers = list(get_kmer_count_from_sequence(reads, k))
-    # print('number of input kmers for k={}'.format(k), len(kmers))
-    # vertices,edges = get_graph_from_kmers(kmers,k)
-
     vertices, edges = get_graph_from_reads(reads, k)
     edge_count_table = dict()
     for edge in edges:
@@ -202,12 +198,13 @@ def construct_graph(reads, k, threshold=3, final=False):
         output = []
         if kmer in already_pull_out:
             continue
-        pruningErrorContigFromBranch(kmer, edges, vertices, vec, output, 15, already_pull_out)
+        pruningErrorContigFromBranch(kmer, edges, vertices, vec, output, 5, already_pull_out)
         for o in output:
             for item in o:
                 if item not in already_pull_out and item not in branch_kmer:
                     already_pull_out.append(item)
                     edges.pop(item)
+
 
     starts = []
     for k in list(vertices.keys()):
@@ -217,12 +214,13 @@ def construct_graph(reads, k, threshold=3, final=False):
     for start in starts:
         vec = []
         output = []
-        pruningErrorContigFromHead(start, edges, vertices, vec, output, 5, already_pull_out, edge_count_table)
+        pruningErrorContigFromHead(start, edges, vertices, vec, output,5, already_pull_out, edge_count_table)
         for o in output:
             for item in o:
                 if item not in already_pull_out and item not in branch_kmer:
                     already_pull_out.append(item)
                     edges.pop(item)
+
 
     if not final:
         for index in trange(len(reads)):
@@ -253,7 +251,6 @@ def DFS(current, E, vec, output, contig_copy, branch_kmer, already_pull_out):
             result = vec[0]
             for i in range(1, len(vec)):
                 result += vec[i][-1]
-            # print(result,len(result))
             output.append(copy.deepcopy(vec))
             contig_copy.append(result)
         return

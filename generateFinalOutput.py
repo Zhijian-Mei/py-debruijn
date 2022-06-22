@@ -1,3 +1,5 @@
+import json
+
 from test_debruijn import read_reads
 
 def checkSubSequence(contig,output):
@@ -15,8 +17,11 @@ def checkHeadToTail(c1,contigs,k):
             result = result + c2[k:]
     return result
 
-filename = 'avastin_5-10mer_0.5'
-contigs = read_reads(filename+'.fasta')
+froot = 'avastin_5-10mer_0.6_2'
+contigs = read_reads(f'{froot}/{froot}.fasta')
+f = open(f'{froot}/setting.json')
+setting = json.load(f)
+print(setting)
 print('max length before concat: ',len(max(contigs,key=lambda x:len(x))))
 
 temp = []
@@ -34,8 +39,8 @@ for contig in temp:
 
 print('max length after concat: ',len(max(output,key=lambda x:len(x))))
 
-k = 10
-outFile = open(filename+'_modified.fasta', mode='a+')
+k = setting['k_upperlimit']
+outFile = open(f'{froot}/{froot}_modified.fasta', mode='a+')
 for i in range(len(output)):
     outFile.writelines('>SEQUENCE_{}_{}mer\n{}\n'.format(i,k, output[i]))
 outFile.close()
