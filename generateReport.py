@@ -53,7 +53,7 @@ df.reset_index(inplace=True, drop=True)
 scores = read_scores(outputfile)
 contigs = read_reads(outputfile)
 
-with open('output.json', 'w') as fw:
+with open(f'{froot}/Report.json', 'w') as fw:
     for i in range(len(contigs)):
         contig = contigs[i]
         json_block = dict()
@@ -62,14 +62,17 @@ with open('output.json', 'w') as fw:
         json_block['Contig sequence'] = contig
         json_block['Length'] = len(contig)
         json_block['Score Sum'] = scores[i]
-        json_block['Supported reads Information'] = []
+        json_block['Supported reads Count(Not Unique)'] = len(support_reads)
+        json_block['Supported reads Count(Unique)'] = len(Counter(support_reads))
+        temp = []
         for j in trange(len(df)):
             read = df['DENOVO'][j]
             if read in contig:
                 support_reads.append(read)
                 readInfo = standard(df.values[j])
-                json_block['Supported reads Information'] += [readInfo]
+                temp += [readInfo]
         json_block['Supported reads Count(Not Unique)'] = len(support_reads)
         json_block['Supported reads Count(Unique)'] = len(Counter(support_reads))
+        json_block['Supported reads Information'] = temp
         json.dump(json_block, fw, indent=4)
         fw.write('\n')
