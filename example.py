@@ -18,9 +18,11 @@ def getScore(edge_count_table, contig, k):
 
 sequences = []
 score_cut = 0.5
-threshold = 2
+threshold = 1
+k_lowerlimit = 5
+k_upperlimit = 10
 
-for root, dir, files in os.walk('avastin/avastin'):
+for root, dir, files in os.walk('Ab_1/Ab_1'):
     root = root + '/'
     for file in files:
         filename = root + file
@@ -39,8 +41,6 @@ sequences = list(sequences.keys())
 print(len(sequences))
 
 
-k_lowerlimit = 5
-k_upperlimit = 10
 for k in range(k_lowerlimit, k_upperlimit + 1):
     if k <= k_upperlimit - 1:
         g, pull_out_read, branch_kmer, already_pull_out, edge_count_table = db.construct_graph(sequences, k,
@@ -52,7 +52,7 @@ for k in range(k_lowerlimit, k_upperlimit + 1):
     sequences = db.output_contigs(g, branch_kmer, already_pull_out)
     sequences.sort(key=lambda x: getScore(edge_count_table, x, k), reverse=True)
     if k == k_upperlimit:
-        froot = 'avastin_{}-{}mer_{}_{}'.format(k_lowerlimit,k_upperlimit, score_cut,threshold)
+        froot = 'Ab_1_{}-{}mer_{}_{}'.format(k_lowerlimit,k_upperlimit, score_cut,threshold)
         os.mkdir(froot)
         setting = {'score_cut': score_cut, 'threshold': threshold, 'k_lowerlimit': k_lowerlimit,
                    'k_upperlimit': k_upperlimit}
