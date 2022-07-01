@@ -5,27 +5,13 @@ from tqdm import trange
 
 
 def findOverlap(intervals):
-    N = len(intervals)
-    if N <= 1:
+    if len(intervals) <= 1:
         return None
-    # First interval
-    l = intervals[0][0]
-    r = intervals[0][1]
-
-    # Check rest of the intervals
-    # and find the intersection
-    for i in range(1, N):
-
-        # If no intersection exists
-        if intervals[i][0] > r or intervals[i][1] < l:
-            return None
-
-        # Else update the intersection
-        else:
-            l = max(l, intervals[i][0])
-            r = min(r, intervals[i][1])
-    return [l,r]
-
+    v1 = max([pair[0] for pair in intervals])
+    v2 = min([pair[1] for pair in intervals])
+    if v1 > v2:
+        return None
+    return [v1,v2]
 
 
 froot = 'avastin_5-10mer_0.6_2'
@@ -41,7 +27,7 @@ previous = None
 for i in trange(len(df)):
     sequence_label = df[0][i]
     protein_label = df[1][i]
-    if sequence_label not in coverage_record.keys(): # new sequence
+    if sequence_label not in coverage_record.keys():  # new sequence
         protein_record = {}
         coverage_record[sequence_label] = 0
     right = df[9][i]
@@ -49,21 +35,22 @@ for i in trange(len(df)):
     coverage = right - left + 1
     coverage_record[sequence_label] += coverage
     if protein_label not in protein_record.keys():
-        protein_record[protein_label] = [[left,right]]
+        protein_record[protein_label] = [[left, right]]
     else:
         before = copy.deepcopy(protein_record[protein_label])
         after = copy.deepcopy(protein_record[protein_label])
-        after.append([left,right])
+        after.append([left, right])
+
+        protein_record[protein_label] = after
+
         overlap_before = findOverlap(before)
         overlap_after = findOverlap(after)
+        print()
+        print(before)
+        print(after)
+        print(overlap_before)
+        print(overlap_after)
         if overlap_after != overlap_before:
-            print(before)
-            print(after)
-            print(overlap_before)
-            print(overlap_after)
             coverage_record[sequence_label] -= (overlap_after[1] - overlap_after[0])
 
-            quit()
-
-
-
+print(coverage_record)
