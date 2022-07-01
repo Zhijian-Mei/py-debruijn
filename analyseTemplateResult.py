@@ -23,12 +23,9 @@ df = df[df[2] >= 80]
 df = df.reset_index(drop=True)
 
 coverage_record = {}
-
-previous = None
 for i in trange(len(df)):
     sequence_label = df[0][i]
     protein_label = df[1][i]
-
     if sequence_label not in coverage_record.keys():  # new sequence
         protein_record = {}
         coverage_record[sequence_label] = 0
@@ -43,5 +40,11 @@ for i in trange(len(df)):
         overlap = findOverlap(protein_record[protein_label])
         if overlap:
             coverage_record[sequence_label] -= (overlap[1] - overlap[0])
-coverage_record = sorted(coverage_record.items(),key=lambda x:x[1],reverse=True)
-pprint(coverage_record)
+# coverage_record = sorted(coverage_record.items(),key=lambda x:x[1],reverse=True)
+print(coverage_record)
+
+outfile = pd.DataFrame()
+outfile['sequence ID'] = coverage_record.keys()
+outfile['coverage Sum'] = coverage_record.values()
+outfile.to_csv(f'{froot}/{froot}_templateCoverageResult.tsv',sep='\t',index=False)
+
