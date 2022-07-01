@@ -17,7 +17,7 @@ def findOverlap(intervals):
 froot = 'avastin_5-10mer_0.6_2'
 df = pd.read_csv(f'{froot}/{froot}_blasthomoTemplate.m8', delimiter='\t', header=None)
 
-df = df[df[3] >= 80]
+df = df[df[2] >= 80]
 
 df = df.reset_index(drop=True)
 
@@ -27,6 +27,7 @@ previous = None
 for i in trange(len(df)):
     sequence_label = df[0][i]
     protein_label = df[1][i]
+
     if sequence_label not in coverage_record.keys():  # new sequence
         protein_record = {}
         coverage_record[sequence_label] = 0
@@ -37,20 +38,9 @@ for i in trange(len(df)):
     if protein_label not in protein_record.keys():
         protein_record[protein_label] = [[left, right]]
     else:
-        before = copy.deepcopy(protein_record[protein_label])
-        after = copy.deepcopy(protein_record[protein_label])
-        after.append([left, right])
-
-        protein_record[protein_label] = after
-
-        overlap_before = findOverlap(before)
-        overlap_after = findOverlap(after)
-        print()
-        print(before)
-        print(after)
-        print(overlap_before)
-        print(overlap_after)
-        if overlap_after != overlap_before:
-            coverage_record[sequence_label] -= (overlap_after[1] - overlap_after[0])
-
+        protein_record[protein_label].append([left,right])
+        overlap = findOverlap(protein_record[protein_label])
+        if overlap:
+            coverage_record[sequence_label] -= (overlap[1] - overlap[0])
+coverage_record = sorted(coverage_record.items(),key=lambda x:x[1],reverse=True)
 print(coverage_record)
