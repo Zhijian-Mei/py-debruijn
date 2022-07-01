@@ -1,4 +1,5 @@
 import copy
+from pprint import pprint
 
 import pandas as pd
 from tqdm import trange
@@ -43,4 +44,4 @@ for i in trange(len(df)):
         if overlap:
             coverage_record[sequence_label] -= (overlap[1] - overlap[0])
 coverage_record = sorted(coverage_record.items(),key=lambda x:x[1],reverse=True)
-print(coverage_record)
+pprint(coverage_record)
