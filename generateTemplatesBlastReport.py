@@ -31,19 +31,27 @@ class aLine:
         return count / self.length
 
 
-def read_fasta(path):
+def read_fasta(path,species=None):
     f = open(path, 'r')
     lines = f.readlines()
     f.close()
     dic = {}
-
-    for i in range(len(lines)):
-        line = lines[i]
-        if line[0] == '>':
-            id = line.split(' ')[0][1:].rstrip()
-            contig = lines[i + 1]
-            dic[id] = contig.rstrip()
-    return dic
+    if species:
+        for i in range(len(lines)):
+            line = lines[i]
+            if line[0] == '>' and species in line:
+                id = line.split(' ')[0][1:].rstrip()
+                contig = lines[i + 1]
+                dic[id] = contig.rstrip()
+        return dic
+    else:
+        for i in range(len(lines)):
+            line = lines[i]
+            if line[0] == '>':
+                id = line.split(' ')[0][1:].rstrip()
+                contig = lines[i + 1]
+                dic[id] = contig.rstrip()
+        return dic
 
 
 def findOverlap(intervals):
@@ -58,8 +66,10 @@ template_name = 'templates/homo_template.fasta'
 froot = 'avastin_5-10mer_0.6_2'
 contig_filepath = f'{froot}/{froot}_modified_sorted.fasta'
 df = pd.read_csv(f'{froot}/{froot}_blasthomoTemplate.m8', delimiter='\t', header=None)
-template_dic = read_fasta(template_name)
+template_dic = read_fasta(template_name,'Homo')
 contig_dic = read_fasta(contig_filepath)
+templates = list(template_dic.keys())
+print(len(templates))
 
 df = df[df[2] >= 80]
 df = df.sort_values(by=1)
@@ -68,7 +78,8 @@ df = df.reset_index(drop=True)
 dfList = df.values
 sequence_template_id_pair_dic={}
 for item in dfList:
-    label = item[:2][0] + '+' + item[:2][1]
+    template_id = item[:2][1]
+    label = item[:2][0] + '+' + template_id
     value_list = list(item[2:])
     sequence_template_id_pair_dic[label] = value_list
 
@@ -88,6 +99,8 @@ coverage_record = {}
 keys = list(protein_sequences_records.keys())
 for i in trange(len(keys)):
     key = keys[i]
+    if key not in templates:
+        continue
     protein_sequences_records[key] = dict(sorted(protein_sequences_records[key].items(), key=lambda x: x[1]))
     sequence_interval_records = protein_sequences_records[key]
     intervals = []
