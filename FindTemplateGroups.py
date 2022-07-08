@@ -28,18 +28,32 @@ if __name__ == '__main__':
     template_contig_group = {}
     while len(contigs) != 0:
         current_contig = contigs[0]
-        template_identity_record = {}
+        template_length_record = {}
         for template_id in templates:
             label = current_contig + '+' + template_id
             try:
                 identity = sequence_template_id_pair_dic[label][0]
             except:
                 continue
-            template_identity_record[template_id] = identity
-        if len(template_identity_record) == 0:
+            if identity > 90:
+                template_length_record[template_id] = len(template_dic[template_id])
+        if len(template_length_record) == 0:
             contigs.remove(current_contig)
             continue
-        best_template = sorted(list(template_identity_record.items()), key=lambda x: x[1], reverse=True)[0][0]
+        candidate_templates = sorted(list(template_length_record.items()), key=lambda x: x[1], reverse=True)
+
+        best_template = candidate_templates[0][0]
+        # candidates_group = [best_template[0]]
+        # for i in range(1,len(candidate_templates)):
+        #     if candidate_templates[i][1] == best_template[1]:
+        #         candidates_group.append(candidate_templates[i][0])
+        #
+        # candidate_length_record = {}
+        # for candidate in candidates_group:
+        #     candidate_length_record[candidate] = len(template_dic[candidate])
+        #
+        # best_template = sorted(list(candidate_length_record.items()),key=lambda x:x[1],reverse=True)[0][0]
+
 
         template_contig_group[best_template] = [current_contig]
         contigs.remove(current_contig)
@@ -58,3 +72,5 @@ if __name__ == '__main__':
             contigs.remove(item)
 
     pprint(template_contig_group)
+    print(template_contig_group.keys())
+    print(len(template_contig_group.keys()))
