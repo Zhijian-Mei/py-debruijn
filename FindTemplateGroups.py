@@ -106,13 +106,16 @@ if __name__ == '__main__':
                     template.contigArrays.append([contig])
             else:
                 template.contigArrays.append([contig])
-        print(template.contigArrays)
         for contig_array in template.contigArrays:
             contig_array = sorted(contig_array,key=lambda x:x.template_interval[0])
             print(template.sequence)
-            for contig in contig_array:
-                print(' '*(contig.template_interval[0]-1) + contig.sequence[contig.contig_interval[0]-1:contig.contig_interval[1]],end=' ')
-            quit()
+            previous_right = 0
+            for i in range(len(contig_array)):
+                contig = contig_array[i]
+                blank = contig.template_interval[0] - previous_right - 1
+                previous_right = contig.template_interval[1]
+                print(' '*blank + contig.sequence[contig.contig_interval[0] -1:contig.contig_interval[1]],end='')
+        quit()
 
 
 
