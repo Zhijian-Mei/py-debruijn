@@ -4,6 +4,34 @@ import pandas as pd
 
 from generateTemplatesBlastReport import read_fasta
 
+class Template:
+    def __init__(self,template_id,template_sequence):
+        self.sequence = template_sequence
+        self.id = template_id
+        self.contigArrays = []
+
+class Contig:
+    def __init__(self,contig_id,contig_sequence,template_interval,contig_interval):
+        self.sequence = contig_sequence
+        self.id = contig_id
+        self.template_interval = template_interval
+        self.contig_interval = contig_interval
+
+
+def checkOverlap(contig_array, contig):
+    intervals = []
+    for item in contig_array:
+        intervals.append(item.template_interval)
+    intervals.append(contig.template_interval)
+    intervals.sort(key=lambda x: x[0])
+
+    for i in range(len(intervals) - 1):
+        if intervals[i][1] > intervals[i + 1][0]:
+            return True
+    return False
+
+
+
 if __name__ == '__main__':
     template_name = 'templates/homo_template.fasta'
     froot = 'avastin_5-10mer_0.6_2'
@@ -43,18 +71,6 @@ if __name__ == '__main__':
         candidate_templates = sorted(list(template_length_record.items()), key=lambda x: x[1], reverse=True)
 
         best_template = candidate_templates[0][0]
-        # candidates_group = [best_template[0]]
-        # for i in range(1,len(candidate_templates)):
-        #     if candidate_templates[i][1] == best_template[1]:
-        #         candidates_group.append(candidate_templates[i][0])
-        #
-        # candidate_length_record = {}
-        # for candidate in candidates_group:
-        #     candidate_length_record[candidate] = len(template_dic[candidate])
-        #
-        # best_template = sorted(list(candidate_length_record.items()),key=lambda x:x[1],reverse=True)[0][0]
-
-
         template_contig_group[best_template] = [current_contig]
         contigs.remove(current_contig)
 
@@ -72,5 +88,86 @@ if __name__ == '__main__':
             contigs.remove(item)
 
     pprint(template_contig_group)
-    print(template_contig_group.keys())
-    print(len(template_contig_group.keys()))
+
+    for template_id in template_contig_group.keys():
+        template = Template(template_id,template_dic[template_id])
+        for contig_id in template_contig_group[template_id]:
+            label = contig_id + '+' + template_id
+            value = sequence_template_id_pair_dic[label]
+            contig = Contig(contig_id,contig_dic[contig_id],[value[6],value[7]],[value[4],value[5]])
+            if len(template.contigArrays) > 0:
+                overlap = True
+                for contig_array in template.contigArrays:
+                    if not checkOverlap(contig_array,contig):
+                        contig_array.append(contig)
+                        overlap = False
+                        break
+                if overlap:
+                    template.contigArrays.append([contig])
+            else:
+                template.contigArrays.append([contig])
+        print(template.contigArrays)
+        for contig_array in template.contigArrays:
+            contig_array = sorted(contig_array,key=lambda x:x.template_interval[0])
+            print(template.sequence)
+            for contig in contig_array:
+                print(' '*(contig.template_interval[0]-1) + contig.sequence[contig.contig_interval[0]-1:contig.contig_interval[1]],end=' ')
+            quit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    report_html = f'{froot}/{froot}_Report.html'
+
+    outFile = open(report_html, 'w')
+
+    string = '123'
+
+    message = '''
+    <html>
+    <head>Templates Groups: </head>
+    <body>
+    '''
+
+    keys = list(template_contig_group.keys())
+    for i in range(len(keys)):
+        template_id = keys[i]
+        message += '''
+        <p>Template{}     {} :</p>
+        <p>{}</p>
+        <p>{}</p>
+        '''.format(i+1,template_id,template_dic[template_id],'-'*100)
+
+        for contig_id in template_contig_group[template_id]:
+            label = contig_id + '+' + template_id
+            message += '''
+            {}
+            <br>
+            '''.format(contig_dic[contig_id])
+
+        message += '<br>'
+    message += '''
+    </body>
+    </html>
+    '''
+
+    outFile.write(message)
+    outFile.close()
