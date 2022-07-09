@@ -87,7 +87,8 @@ if __name__ == '__main__':
         for item in remove:
             contigs.remove(item)
 
-    pprint(template_contig_group)
+    # pprint(template_contig_group)
+
 
     for template_id in template_contig_group.keys():
         template = Template(template_id,template_dic[template_id])
@@ -106,16 +107,20 @@ if __name__ == '__main__':
                     template.contigArrays.append([contig])
             else:
                 template.contigArrays.append([contig])
+        print(template.sequence)
+
         for contig_array in template.contigArrays:
             contig_array = sorted(contig_array,key=lambda x:x.template_interval[0])
-            print(template.sequence)
             previous_right = 0
             for i in range(len(contig_array)):
                 contig = contig_array[i]
                 blank = contig.template_interval[0] - previous_right - 1
                 previous_right = contig.template_interval[1]
                 print(' '*blank + contig.sequence[contig.contig_interval[0] -1:contig.contig_interval[1]],end='')
-        quit()
+                if i == len(contig_array) - 1:
+                    print()
+        print('*' * 200)
+    quit()
 
 
 
