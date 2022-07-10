@@ -112,35 +112,15 @@ if __name__ == '__main__':
         for contig_array in template.contigArrays:
             contig_array = sorted(contig_array,key=lambda x:x.template_interval[0])
             previous_right = 0
+            match_result = ''
             for i in range(len(contig_array)):
                 contig = contig_array[i]
                 blank = contig.template_interval[0] - previous_right - 1
                 previous_right = contig.template_interval[1]
-                print(' '*blank + contig.sequence[contig.contig_interval[0] -1:contig.contig_interval[1]],end='')
-                if i == len(contig_array) - 1:
-                    print()
+                match_result += ' '*blank + contig.sequence[contig.contig_interval[0] -1:contig.contig_interval[1]]
+            print(match_result)
         print('*' * 200)
     quit()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     report_html = f'{froot}/{froot}_Report.html'
