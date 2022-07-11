@@ -17,6 +17,26 @@ class Contig:
         self.template_interval = template_interval
         self.contig_interval = contig_interval
 
+class fillingTemplate:
+    def __init__(self,template_sequence):
+        self.template_sequence = template_sequence
+        self.fill = list(' ' * len(self.template_sequence))
+
+
+    def fill_match(self,contig):
+        contig_sequence = list(contig.sequence[contig.contig_interval[0]-1:contig.contig_interval[1]])
+        # print(444,len(contig_sequence),contig.id)
+        # print(1,len(self.fill))
+        # print(contig.template_interval[0],contig.template_interval[1])
+        self.fill[contig.template_interval[0]-1:contig.template_interval[1]] = contig_sequence
+        # print(2,len(self.fill))
+        # for i in range(contig.template_interval[0]-1,contig.template_interval[1]):
+        #     self.fill[i] = assign_item
+
+
+
+    def get_match_result(self):
+        return ''.join(self.fill)
 
 def checkOverlap(contig_array, contig):
     intervals = []
@@ -111,14 +131,14 @@ if __name__ == '__main__':
 
         for contig_array in template.contigArrays:
             contig_array = sorted(contig_array,key=lambda x:x.template_interval[0])
-            previous_right = 0
-            match_result = ''
+            match_result = fillingTemplate(template.sequence)
             for i in range(len(contig_array)):
                 contig = contig_array[i]
-                blank = contig.template_interval[0] - previous_right - 1
-                previous_right = contig.template_interval[1]
-                match_result += ' '*blank + contig.sequence[contig.contig_interval[0] -1:contig.contig_interval[1]]
-            print(match_result)
+                match_result.fill_match(contig)
+            result_sequence = match_result.get_match_result()
+            # print(len(result_sequence))
+            print(result_sequence)
+            # different_position = [index for index in range(len(template.sequence)) if template.sequence[index] != result_sequence[index] and result_sequence[index] != ' ']
         print('*' * 200)
     quit()
 
