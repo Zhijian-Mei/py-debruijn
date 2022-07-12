@@ -1,3 +1,4 @@
+import re
 from pprint import pprint
 
 import pandas as pd
@@ -26,13 +27,7 @@ class fillingTemplate:
 
     def fill_match(self,contig):
         contig_sequence = list(contig.sequence[contig.contig_interval[0]-1:contig.contig_interval[1]])
-        # print(444,len(contig_sequence),contig.id)
-        # print(1,len(self.fill))
-        # print(contig.template_interval[0],contig.template_interval[1])
         self.fill[contig.template_interval[0]-1:contig.template_interval[1]] = contig_sequence
-        # print(2,len(self.fill))
-        # for i in range(contig.template_interval[0]-1,contig.template_interval[1]):
-        #     self.fill[i] = assign_item
 
 
 
@@ -51,7 +46,16 @@ def checkOverlap(contig_array, contig):
             return True
     return False
 
+def toHTML(string):
+    result = []
+    for char in string:
+        if char == ' ':
+            result.append('&nbsp;&nbsp;')
+        else:
+            result.append(char)
+    result = ''.join(result)
 
+    return result
 
 if __name__ == '__main__':
     template_name = 'templates/homo_template.fasta'
@@ -110,13 +114,10 @@ if __name__ == '__main__':
 
     # pprint(template_contig_group)
 
-    report_html = f'{froot}/{froot}_TemplateMatchReport.html'
-    outFile = open(report_html, 'w')
-    message = '''
-        <html>
-        <head>Templates Groups: </head>
-        <body>
-        '''
+    report_path = f'{froot}/{froot}_TemplateMatchReport.txt'
+    outFile = open(report_path, 'w')
+    message = ''
+
 
     for template_id in template_contig_group.keys():
         template = Template(template_id,template_dic[template_id])
@@ -136,8 +137,8 @@ if __name__ == '__main__':
             else:
                 template.contigArrays.append([contig])
 
-        message += '{}<br>'.format(template.sequence)
 
+        result_sequences = []
         for contig_array in template.contigArrays:
             contig_array = sorted(contig_array,key=lambda x:x.template_interval[0])
             match_result = fillingTemplate(template.sequence)
@@ -147,18 +148,28 @@ if __name__ == '__main__':
                     continue
                 match_result.fill_match(contig)
             result_sequence = match_result.get_match_result()
-            message += '{}<br>'.format(result_sequence)
+            if not re.search('[a-zA-Z]', result_sequence):
+                continue
+            result_sequences.append(result_sequence)
             different_position = [index for index in range(len(template.sequence)) if template.sequence[index] != result_sequence[index] and result_sequence[index] != ' ']
             for position in different_position:
                 if position not in template.different_position:
                     template.different_position.append(position)
-        print(template.different_position)
-        print('*' * 500)
+        message += '-' * 500
+        message += '\n'
+        message += 'Template ID: {}\n'.format(template.id)
+        changed_line = list(' ' * len(template.sequence))
+        for position in template.different_position:
+            changed_line[position] = '*'
+        changed_line = ''.join(changed_line)
+        message += changed_line
+        message += '\n'
+        message += '{}\n'.format(template.sequence)
+        for result_sequence in result_sequences:
+            message += result_sequence
+            message += '\n'
 
-    message += '''
-    </body>
-    </html>
-    '''
 
     outFile.write(message)
     outFile.close()
+

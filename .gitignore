@@ -18,3 +18,5 @@ test.py
 *.cdhit
 *.clstr
 *.m8
+*.txt
+*.md
