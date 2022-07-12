@@ -9,6 +9,7 @@ class Template:
         self.sequence = template_sequence
         self.id = template_id
         self.contigArrays = []
+        self.different_position = []
 
 class Contig:
     def __init__(self,contig_id,contig_sequence,template_interval,contig_interval):
@@ -109,6 +110,13 @@ if __name__ == '__main__':
 
     # pprint(template_contig_group)
 
+    report_html = f'{froot}/{froot}_TemplateMatchReport.html'
+    outFile = open(report_html, 'w')
+    message = '''
+        <html>
+        <head>Templates Groups: </head>
+        <body>
+        '''
 
     for template_id in template_contig_group.keys():
         template = Template(template_id,template_dic[template_id])
@@ -127,51 +135,26 @@ if __name__ == '__main__':
                     template.contigArrays.append([contig])
             else:
                 template.contigArrays.append([contig])
-        print(template.sequence)
+
+        message += '{}<br>'.format(template.sequence)
 
         for contig_array in template.contigArrays:
             contig_array = sorted(contig_array,key=lambda x:x.template_interval[0])
             match_result = fillingTemplate(template.sequence)
             for i in range(len(contig_array)):
                 contig = contig_array[i]
+                if (contig.contig_interval[1] - contig.contig_interval[0]) != (contig.template_interval[1] - contig.template_interval[0]):
+                    continue
                 match_result.fill_match(contig)
             result_sequence = match_result.get_match_result()
-            # print(len(result_sequence))
-            print(result_sequence)
-            # different_position = [index for index in range(len(template.sequence)) if template.sequence[index] != result_sequence[index] and result_sequence[index] != ' ']
-        print('*' * 200)
-    quit()
+            message += '{}<br>'.format(result_sequence)
+            different_position = [index for index in range(len(template.sequence)) if template.sequence[index] != result_sequence[index] and result_sequence[index] != ' ']
+            for position in different_position:
+                if position not in template.different_position:
+                    template.different_position.append(position)
+        print(template.different_position)
+        print('*' * 500)
 
-
-    report_html = f'{froot}/{froot}_Report.html'
-
-    outFile = open(report_html, 'w')
-
-    string = '123'
-
-    message = '''
-    <html>
-    <head>Templates Groups: </head>
-    <body>
-    '''
-
-    keys = list(template_contig_group.keys())
-    for i in range(len(keys)):
-        template_id = keys[i]
-        message += '''
-        <p>Template{}     {} :</p>
-        <p>{}</p>
-        <p>{}</p>
-        '''.format(i+1,template_id,template_dic[template_id],'-'*100)
-
-        for contig_id in template_contig_group[template_id]:
-            label = contig_id + '+' + template_id
-            message += '''
-            {}
-            <br>
-            '''.format(contig_dic[contig_id])
-
-        message += '<br>'
     message += '''
     </body>
     </html>
