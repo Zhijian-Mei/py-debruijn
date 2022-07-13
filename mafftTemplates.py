@@ -1,5 +1,5 @@
 from Bio.Align.Applications import MafftCommandline
-import os
+from io import StringIO
 
 from tqdm import trange
 
@@ -24,12 +24,10 @@ templates_keys = list(templates.keys())
 in_file = "input.fasta"
 for contig in contigs.keys():
     for i in trange(len(templates_keys)):
-        f = open(in_file, 'w')
-        f.writelines(contig + '\n')
-        f.writelines(contigs[contig] + '\n')
         template = templates_keys[i]
-        f.writelines(template+'\n')
-        f.writelines(templates[template]+'\n')
+        string = contig + '\n' + contigs[contig] + '\n' + template+'\n' + templates[template]
+        f = open(in_file, 'w')
+        f.write(string)
         f.close()
         mafft_cline = MafftCommandline(input=in_file,clustalout=True)
         stdout, stderr = mafft_cline()

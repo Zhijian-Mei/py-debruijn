@@ -16,7 +16,7 @@ test.py
 *.tgz
 *.json
 *.cdhit
-*.clstr
 *.m8
 *.txt
 *.md
+*.out
