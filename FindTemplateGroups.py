@@ -143,9 +143,9 @@ if __name__ == '__main__':
 
     # pprint(template_contig_group)
 
-    # report_path = f'{froot}/{froot}_TemplateMatchReport.txt'
-    # outFile = open(report_path, 'w')
-    # message = ''
+    report_path = f'{froot}/{froot}_TemplateMatchReport.txt'
+    outFile = open(report_path, 'w')
+    message = ''
 
 
     for template_id in template_contig_group.keys():
@@ -184,6 +184,12 @@ if __name__ == '__main__':
         print()
         print('*' * 500)
         print(template.sequence)
+        message += '*' * 500
+        message += '\n'
+        message += 'Template ID: {}'.format(template.id)
+        message += '\n'
+        message += template.sequence
+        message += '\n'
         for contig_array in template.contigArrays:
             contig_array = sorted(contig_array, key=lambda x: x.template_interval[0])
             for contig in contig_array:
@@ -200,17 +206,22 @@ if __name__ == '__main__':
                         current_template_position[current_contig_letter] = contig.rates[contig_point]
                     else:
                         current_template_position[current_contig_letter] = current_template_position[current_contig_letter] * contig.rates[contig_point]
+
         position_keys = list(template.letters_correctRate.keys())
         result_sequences = []
         for key in position_keys:
             candidate_letters = template.letters_correctRate[key]
-            if candidate_letters == {}:
-                print(' ',end='')
-            else:
-                candidate_letters = dict(sorted(candidate_letters.items(), key=lambda item: item[1]))
-                # if len(candidate_letters)>1:
-                #     print(candidate_letters)
-                print(list(candidate_letters.keys())[0],end='')
+            candidate_letters = dict(sorted(candidate_letters.items(), key=lambda item: item[1]))
+            if candidate_letters != {}:
+                while len(result_sequences) < len(candidate_letters):
+                    result_sequences.append(list(' '*len(template.sequence)))
+                letters = list(candidate_letters.keys())
+                for i in range(len(letters)):
+                    result_sequences[i][key] = letters[i]
+        for sequence in result_sequences:
+            print(''.join(sequence))
+            message += ''.join(sequence)
+            message += '\n'
 
 
 
@@ -246,6 +257,6 @@ if __name__ == '__main__':
         #     message += '\n'
 
 
-    # outFile.write(message)
-    # outFile.close()
+    outFile.write(message)
+    outFile.close()
 
