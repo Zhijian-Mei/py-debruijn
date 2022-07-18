@@ -3,7 +3,7 @@ from Bio.Blast.Applications import NcbiblastpCommandline
 
 template_type = 'homo'
 froot = 'avastin_5-10mer_0.6_2'
-subject = f'templates/{template_type}_template.fasta'
+subject = f'templates/{template_type}_templates.fasta'
 
 command = NcbiblastpCommandline(query=f'{froot}/{froot}_modified_sorted.fasta',
                                 subject=subject,

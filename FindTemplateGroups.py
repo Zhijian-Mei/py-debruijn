@@ -8,8 +8,11 @@ import numpy as np
 
 import pandas as pd
 from tqdm import trange
-
+from Bio.Blast.Applications import NcbiblastpCommandline
 from generateTemplatesBlastReport import read_fasta
+from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
+from Bio.Seq import Seq
 
 class Template:
     def __init__(self,template_id,template_sequence):
@@ -20,6 +23,9 @@ class Template:
         self.letters_correctRate = {}
         for i in range(len(self.sequence)):
             self.letters_correctRate[i] = {}
+        self.unusedReads_match = {}
+        for i in range(len(self.sequence)):
+            self.unusedReads_match[i] = []
 
 class Contig:
     def __init__(self,contig_id,contig_sequence,template_interval,contig_interval):
@@ -62,7 +68,7 @@ def toHTML(string):
     result = []
     for char in string:
         if char == ' ':
-            result.append('&nbsp;&nbsp;')
+            result.append('-')
         else:
             result.append(char)
     result = ''.join(result)
@@ -70,7 +76,7 @@ def toHTML(string):
     return result
 
 if __name__ == '__main__':
-    template_name = 'templates/homo_template.fasta'
+    template_name = 'templates/homo_templates.fasta'
     froot = 'avastin_5-10mer_0.6_2'
     contig_filepath = f'{froot}/{froot}_modified_sorted.fasta'
 
@@ -123,7 +129,6 @@ if __name__ == '__main__':
             contigs.remove(current_contig)
             continue
         candidate_templates = sorted(list(template_length_record.items()), key=lambda x: x[1], reverse=True)
-
         best_template = candidate_templates[0][0]
         template_contig_group[best_template] = [current_contig]
         contigs.remove(current_contig)
@@ -147,6 +152,9 @@ if __name__ == '__main__':
     outFile = open(report_path, 'w')
     message = ''
 
+    reads = DF['DENOVO'].values
+    position_scores = DF['Positional Score'].values
+
 
     for template_id in template_contig_group.keys():
         template = Template(template_id,template_dic[template_id])
@@ -166,8 +174,6 @@ if __name__ == '__main__':
             else:
                 template.contigArrays.append([contig])
 
-        reads = DF['DENOVO'].values
-        position_scores = DF['Positional Score'].values
 
         for array_index in range(len(template.contigArrays)):
             contig_array = template.contigArrays[array_index]
@@ -222,6 +228,61 @@ if __name__ == '__main__':
             print(''.join(sequence))
             message += ''.join(sequence)
             message += '\n'
+        message += '-'*100+'\n'
+        print('-'*100)
+        message += 'Unused reads blast result: \n'
+        print('Unused reads blast result: ')
+        message += template.sequence+'\n'
+        print(template.sequence)
+        with open(f'{froot}/temp.fasta','w') as f:
+            f.write('>{}\n'.format(template.id))
+            f.write(template.sequence)
+        out = f'{froot}/{froot}_unusedReadsBlastTemplate.m8'
+        query = f'{froot}/unusedReads.fasta'
+        command = NcbiblastpCommandline(query=query,
+                                        subject=f'{froot}/temp.fasta',
+                                        outfmt=6,
+                                        out=out,
+                                        # out=f'{froot}/{froot}_blast{template_type}Template.html',
+                                        html=True,
+                                        )
+        command()
+
+        unusedReadsTemplateResults = pd.read_csv(out,delimiter='\t', header=None)
+        unusedReadsTemplateResults = unusedReadsTemplateResults[unusedReadsTemplateResults[2]>=90]
+        unusedReadsTemplateResults.reset_index(drop=True,inplace=True)
+
+        unusedReads_dic = read_fasta(query)
+
+        unusedReads_value_dic = {}
+        for value in unusedReadsTemplateResults.values:
+            unusedReads_value_dic[value[0]] = list(value[1:])
+
+        for unusedRead in unusedReads_value_dic.keys():
+            item = unusedReads_value_dic[unusedRead]
+            read_left = item[5]
+            read_right = item[6]
+            template_left = item[7]
+            template_right = item[8]
+            if (read_right-read_left) != (template_right-template_left):
+                continue
+            matchedReadSeq = unusedReads_dic[unusedRead][read_left-1:read_right]
+            for i in range(template_left-1,template_right):
+                current_read_letter = matchedReadSeq[i - (template_left - 1)]
+                if current_read_letter not in template.unusedReads_match[i]:
+                    template.unusedReads_match[i] += [current_read_letter]
+        unusedReadsResultSequence = []
+        for key in template.unusedReads_match.keys():
+            while len(template.unusedReads_match[key]) > len(unusedReadsResultSequence):
+                unusedReadsResultSequence.append(list(' '*len(template.sequence)))
+            letters = template.unusedReads_match[key]
+            for i in range(len(letters)):
+                unusedReadsResultSequence[i][key] = letters[i]
+        for sequence in unusedReadsResultSequence:
+            print(''.join(sequence))
+            message+= ''.join(sequence)+'\n'
+
+
 
 
 

@@ -14,7 +14,7 @@ def read_fasta(fname):
 fasta = read_fasta('homo_template.fasta')
 
 
-outfile = 'homo_templates_final.fasta'
+outfile = 'homo_templates.fasta'
 f = open(outfile,'w')
 for key in fasta.keys():
     f.writelines(key)
