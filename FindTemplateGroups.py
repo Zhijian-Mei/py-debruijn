@@ -228,6 +228,7 @@ if __name__ == '__main__':
             print(''.join(sequence))
             message += ''.join(sequence)
             message += '\n'
+
         message += '-'*100+'\n'
         print('-'*100)
         message += 'Unused reads blast result: \n'
@@ -281,6 +282,28 @@ if __name__ == '__main__':
         for sequence in unusedReadsResultSequence:
             print(''.join(sequence))
             message+= ''.join(sequence)+'\n'
+
+        merged_result = []
+        while len(result_sequences) < max(len(result_sequences),len(unusedReadsResultSequence)):
+            result_sequences.append(list(' '*len(template.sequence)))
+        for unusedReadResult in unusedReadsResultSequence:
+            for i in range(len(template.sequence)):
+                letter = unusedReadResult[i]
+                for contig_result in result_sequences:
+                    if contig_result[i] == letter:
+                        break
+                    if contig_result[i] == ' ':
+                        contig_result[i] = letter
+                        break
+        merged_result = result_sequences
+        print('-'*100+'Merged Result'+'-'*100)
+        print(template.sequence)
+        for sequence in merged_result:
+            if not any(c.isalpha() for c in sequence):
+                continue
+            print(''.join(sequence))
+
+
 
 
 
