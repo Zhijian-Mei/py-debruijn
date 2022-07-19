@@ -5,7 +5,6 @@ from pprint import pprint
 import ast
 import numpy as np
 
-
 import pandas as pd
 from tqdm import trange
 from Bio.Blast.Applications import NcbiblastpCommandline
@@ -14,8 +13,9 @@ from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 
+
 class Template:
-    def __init__(self,template_id,template_sequence):
+    def __init__(self, template_id, template_sequence):
         self.sequence = template_sequence
         self.id = template_id
         self.contigArrays = []
@@ -27,8 +27,9 @@ class Template:
         for i in range(len(self.sequence)):
             self.unusedReads_match[i] = []
 
+
 class Contig:
-    def __init__(self,contig_id,contig_sequence,template_interval,contig_interval):
+    def __init__(self, contig_id, contig_sequence, template_interval, contig_interval):
         self.sequence = contig_sequence
         self.id = contig_id
         self.template_interval = template_interval
@@ -37,20 +38,19 @@ class Contig:
         for i in range(len(self.sequence)):
             self.rates[i] = 1
 
+
 class fillingTemplate:
-    def __init__(self,template_sequence):
+    def __init__(self, template_sequence):
         self.template_sequence = template_sequence
         self.fill = list(' ' * len(self.template_sequence))
 
-
-    def fill_match(self,contig):
-        contig_sequence = list(contig.sequence[contig.contig_interval[0]-1:contig.contig_interval[1]])
-        self.fill[contig.template_interval[0]-1:contig.template_interval[1]] = contig_sequence
-
-
+    def fill_match(self, contig):
+        contig_sequence = list(contig.sequence[contig.contig_interval[0] - 1:contig.contig_interval[1]])
+        self.fill[contig.template_interval[0] - 1:contig.template_interval[1]] = contig_sequence
 
     def get_match_result(self):
         return ''.join(self.fill)
+
 
 def checkOverlap(contig_array, contig):
     intervals = []
@@ -64,6 +64,7 @@ def checkOverlap(contig_array, contig):
             return True
     return False
 
+
 def toHTML(string):
     result = []
     for char in string:
@@ -74,6 +75,7 @@ def toHTML(string):
     result = ''.join(result)
 
     return result
+
 
 if __name__ == '__main__':
     template_name = 'templates/homo_templates.fasta'
@@ -151,21 +153,24 @@ if __name__ == '__main__':
     report_path = f'{froot}/{froot}_TemplateMatchReport.txt'
     outFile = open(report_path, 'w')
     message = ''
-
+    html_path = f'{froot}/{froot}_TemplateMatchReport.html'
+    htmlFile = open(html_path, 'w')
+    html = '''<!DOCTYPE html>
+    <body>
+    '''
     reads = DF['DENOVO'].values
     position_scores = DF['Positional Score'].values
 
-
     for template_id in template_contig_group.keys():
-        template = Template(template_id,template_dic[template_id])
+        template = Template(template_id, template_dic[template_id])
         for contig_id in template_contig_group[template_id]:
             label = contig_id + '+' + template_id
             value = sequence_template_id_pair_dic[label]
-            contig = Contig(contig_id,contig_dic[contig_id],[value[6],value[7]],[value[4],value[5]])
+            contig = Contig(contig_id, contig_dic[contig_id], [value[6], value[7]], [value[4], value[5]])
             if len(template.contigArrays) > 0:
                 overlap = True
                 for contig_array in template.contigArrays:
-                    if not checkOverlap(contig_array,contig):
+                    if not checkOverlap(contig_array, contig):
                         contig_array.append(contig)
                         overlap = False
                         break
@@ -174,7 +179,6 @@ if __name__ == '__main__':
             else:
                 template.contigArrays.append([contig])
 
-
         for array_index in range(len(template.contigArrays)):
             contig_array = template.contigArrays[array_index]
             contig_array = sorted(contig_array, key=lambda x: x.template_interval[0])
@@ -182,10 +186,10 @@ if __name__ == '__main__':
                 for i in range(len(reads)):
                     read = reads[i]
                     if read in contig.sequence:
-                        match = re.search(read,contig.sequence)
+                        match = re.search(read, contig.sequence)
                         read_positional_scores = ast.literal_eval(position_scores[i])
-                        for j in range(match.start(),match.end()):
-                            contig.rates[j] = contig.rates[j] * (1-read_positional_scores[j - match.start()])
+                        for j in range(match.start(), match.end()):
+                            contig.rates[j] = contig.rates[j] * (1 - read_positional_scores[j - match.start()])
 
         print()
         print('*' * 500)
@@ -199,10 +203,11 @@ if __name__ == '__main__':
         for contig_array in template.contigArrays:
             contig_array = sorted(contig_array, key=lambda x: x.template_interval[0])
             for contig in contig_array:
-                if (contig.contig_interval[1] - contig.contig_interval[0]) != (contig.template_interval[1] - contig.template_interval[0]):
+                if (contig.contig_interval[1] - contig.contig_interval[0]) != (
+                        contig.template_interval[1] - contig.template_interval[0]):
                     continue
-                template_points = [x for x in range(contig.template_interval[0]-1,contig.template_interval[1])]
-                contig_points = [x for x in range(contig.contig_interval[0] - 1,contig.contig_interval[1])]
+                template_points = [x for x in range(contig.template_interval[0] - 1, contig.template_interval[1])]
+                contig_points = [x for x in range(contig.contig_interval[0] - 1, contig.contig_interval[1])]
                 for i in range(len(template_points)):
                     template_point = template_points[i]
                     contig_point = contig_points[i]
@@ -211,7 +216,9 @@ if __name__ == '__main__':
                     if current_contig_letter not in current_template_position.keys():
                         current_template_position[current_contig_letter] = contig.rates[contig_point]
                     else:
-                        current_template_position[current_contig_letter] = current_template_position[current_contig_letter] * contig.rates[contig_point]
+                        current_template_position[current_contig_letter] = current_template_position[
+                                                                               current_contig_letter] * contig.rates[
+                                                                               contig_point]
 
         position_keys = list(template.letters_correctRate.keys())
         result_sequences = []
@@ -220,7 +227,7 @@ if __name__ == '__main__':
             candidate_letters = dict(sorted(candidate_letters.items(), key=lambda item: item[1]))
             if candidate_letters != {}:
                 while len(result_sequences) < len(candidate_letters):
-                    result_sequences.append(list(' '*len(template.sequence)))
+                    result_sequences.append(list(' ' * len(template.sequence)))
                 letters = list(candidate_letters.keys())
                 for i in range(len(letters)):
                     result_sequences[i][key] = letters[i]
@@ -229,13 +236,13 @@ if __name__ == '__main__':
             message += ''.join(sequence)
             message += '\n'
 
-        message += '-'*100+'\n'
-        print('-'*100)
+        message += '-' * 100 + '\n'
+        print('-' * 100)
         message += 'Unused reads blast result: \n'
         print('Unused reads blast result: ')
-        message += template.sequence+'\n'
+        message += template.sequence + '\n'
         print(template.sequence)
-        with open(f'{froot}/temp.fasta','w') as f:
+        with open(f'{froot}/temp.fasta', 'w') as f:
             f.write('>{}\n'.format(template.id))
             f.write(template.sequence)
         out = f'{froot}/{froot}_unusedReadsBlastTemplate.m8'
@@ -249,9 +256,9 @@ if __name__ == '__main__':
                                         )
         command()
 
-        unusedReadsTemplateResults = pd.read_csv(out,delimiter='\t', header=None)
-        unusedReadsTemplateResults = unusedReadsTemplateResults[unusedReadsTemplateResults[2]>=90]
-        unusedReadsTemplateResults.reset_index(drop=True,inplace=True)
+        unusedReadsTemplateResults = pd.read_csv(out, delimiter='\t', header=None)
+        unusedReadsTemplateResults = unusedReadsTemplateResults[unusedReadsTemplateResults[2] >= 90]
+        unusedReadsTemplateResults.reset_index(drop=True, inplace=True)
 
         unusedReads_dic = read_fasta(query)
 
@@ -265,27 +272,27 @@ if __name__ == '__main__':
             read_right = item[6]
             template_left = item[7]
             template_right = item[8]
-            if (read_right-read_left) != (template_right-template_left):
+            if (read_right - read_left) != (template_right - template_left):
                 continue
-            matchedReadSeq = unusedReads_dic[unusedRead][read_left-1:read_right]
-            for i in range(template_left-1,template_right):
+            matchedReadSeq = unusedReads_dic[unusedRead][read_left - 1:read_right]
+            for i in range(template_left - 1, template_right):
                 current_read_letter = matchedReadSeq[i - (template_left - 1)]
                 if current_read_letter not in template.unusedReads_match[i]:
                     template.unusedReads_match[i] += [current_read_letter]
         unusedReadsResultSequence = []
         for key in template.unusedReads_match.keys():
             while len(template.unusedReads_match[key]) > len(unusedReadsResultSequence):
-                unusedReadsResultSequence.append(list(' '*len(template.sequence)))
+                unusedReadsResultSequence.append(list(' ' * len(template.sequence)))
             letters = template.unusedReads_match[key]
             for i in range(len(letters)):
                 unusedReadsResultSequence[i][key] = letters[i]
         for sequence in unusedReadsResultSequence:
             print(''.join(sequence))
-            message+= ''.join(sequence)+'\n'
+            message += ''.join(sequence) + '\n'
 
         merged_result = []
-        while len(result_sequences) < max(len(result_sequences),len(unusedReadsResultSequence)):
-            result_sequences.append(list(' '*len(template.sequence)))
+        while len(result_sequences) < max(len(result_sequences), len(unusedReadsResultSequence)):
+            result_sequences.append(list(' ' * len(template.sequence)))
         for unusedReadResult in unusedReadsResultSequence:
             for i in range(len(template.sequence)):
                 letter = unusedReadResult[i]
@@ -293,54 +300,40 @@ if __name__ == '__main__':
                     if contig_result[i] == letter:
                         break
                     if contig_result[i] == ' ':
-                        contig_result[i] = letter
+                        contig_result[i] = '<font color="green">{}</font>'.format(letter)
                         break
+
+        for sequence in result_sequences:
+            for i in range(len(sequence)):
+                if sequence[i] != ' ' and len(sequence[i]) == 1:
+                    sequence[i] = '<font color="blue">{}</font>'.format(sequence[i])
+
         merged_result = result_sequences
-        print('-'*100+'Merged Result'+'-'*100)
-        print(template.sequence)
-        for sequence in merged_result:
-            if not any(c.isalpha() for c in sequence):
-                continue
-            print(''.join(sequence))
 
+        step = 250
+        print('-' * 100 + 'Merged Result' + '-' * 100)
+        html += '*' * 100 + 'Merged Result' + '*' * 100 + '<br>'
+        html += 'Template ID: {}<br>'.format(template.id)
+        for i in range(0, len(template.sequence), step):
+            try:
+                sub_template = template.sequence[i:i + step]
+            except:
+                sub_template = template.sequence[i:]
+            print(sub_template)
+            html += '<pre>' +sub_template + '</pre>'
+            for sequence in merged_result:
+                try:
+                    sub_sequence = sequence[i:i + step]
+                except:
+                    sub_sequence = sequence[i:]
+                sub_sequence = ''.join(sub_sequence)
+                if not any(c.isalpha() for c in sub_sequence):
+                    continue
+                html += '<pre>' + sub_sequence + '</pre>'
 
+            html += '<br>'
 
-
-
-
-
-        # result_sequences = []
-        # for contig_array in template.contigArrays:
-        #     contig_array = sorted(contig_array,key=lambda x:x.template_interval[0])
-        #     match_result = fillingTemplate(template.sequence)
-        #     for i in range(len(contig_array)):
-        #         contig = contig_array[i]
-        #         if (contig.contig_interval[1] - contig.contig_interval[0]) != (contig.template_interval[1] - contig.template_interval[0]):
-        #             continue
-        #         match_result.fill_match(contig)
-        #     result_sequence = match_result.get_match_result()
-        #     if not re.search('[a-zA-Z]', result_sequence):
-        #         continue
-        #     result_sequences.append(result_sequence)
-        #     different_position = [index for index in range(len(template.sequence)) if template.sequence[index] != result_sequence[index] and result_sequence[index] != ' ']
-        #     for position in different_position:
-        #         if position not in template.different_position:
-        #             template.different_position.append(position)
-        # message += '-' * 500
-        # message += '\n'
-        # message += 'Template ID: {}\n'.format(template.id)
-        # changed_line = list(' ' * len(template.sequence))
-        # for position in template.different_position:
-        #     changed_line[position] = '*'
-        # changed_line = ''.join(changed_line)
-        # message += changed_line
-        # message += '\n'
-        # message += '{}\n'.format(template.sequence)
-        # for result_sequence in result_sequences:
-        #     message += result_sequence
-        #     message += '\n'
-
-
+    htmlFile.write(html)
+    htmlFile.close()
     outFile.write(message)
     outFile.close()
-
