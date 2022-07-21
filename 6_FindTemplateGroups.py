@@ -102,7 +102,12 @@ if __name__ == '__main__':
     df = df[df[2] >= 80]
     df = df.sort_values(by=0)
     df = df.reset_index(drop=True)
-    template_dic = read_fasta(template_name, 'Homo')
+
+    df = df[df[1] == 'Avastin_H']
+    df = df[df[0] == 'SEQUENCE_896_10mer_340.91']
+    print(df)
+    quit()
+    template_dic = read_fasta(template_name)
     templates = list(template_dic.keys())
     contig_dic = read_fasta(contig_filepath)
     contigs = list(contig_dic.keys())
@@ -118,20 +123,25 @@ if __name__ == '__main__':
     template_contig_group = {}
     while len(contigs) != 0:
         current_contig = contigs[0]
-        template_length_record = {}
+        best_identity = 0
+        best_template = None
         for template_id in templates:
             label = current_contig + '+' + template_id
             try:
                 identity = sequence_template_id_pair_dic[label][0]
             except:
                 continue
-            if identity > 90:
-                template_length_record[template_id] = len(template_dic[template_id])
-        if len(template_length_record) == 0:
+            # if identity > 90:
+            #     template_length_record[template_id] = len(template_dic[template_id])
+            if identity > best_identity:
+                best_identity = identity
+                best_template = template_id
+        # if len(template_length_record) == 0:
+        if not best_template:
             contigs.remove(current_contig)
             continue
-        candidate_templates = sorted(list(template_length_record.items()), key=lambda x: x[1], reverse=True)
-        best_template = candidate_templates[0][0]
+        # candidate_templates = sorted(list(template_length_record.items()), key=lambda x: x[1], reverse=True)
+        # best_template = candidate_templates[0][0]
         template_contig_group[best_template] = [current_contig]
         contigs.remove(current_contig)
 
@@ -251,8 +261,6 @@ if __name__ == '__main__':
                                         subject=f'{froot}/temp.fasta',
                                         outfmt=6,
                                         out=out,
-                                        # out=f'{froot}/{froot}_blast{template_type}Template.html',
-                                        html=True,
                                         )
         command()
 
@@ -275,6 +283,10 @@ if __name__ == '__main__':
             if (read_right - read_left) != (template_right - template_left):
                 continue
             matchedReadSeq = unusedReads_dic[unusedRead][read_left - 1:read_right]
+            # if matchedReadSeq == 'SGL':
+            #     print(unusedReads_dic[unusedRead])
+            #     print(unusedRead)
+            #     quit()
             for i in range(template_left - 1, template_right):
                 current_read_letter = matchedReadSeq[i - (template_left - 1)]
                 if current_read_letter not in template.unusedReads_match[i]:
@@ -320,7 +332,7 @@ if __name__ == '__main__':
             except:
                 sub_template = template.sequence[i:]
             print(sub_template)
-            html += '<pre>' +sub_template + '</pre>'
+            html += '<pre>' + sub_template + '</pre>'
             for sequence in merged_result:
                 try:
                     sub_sequence = sequence[i:i + step]
