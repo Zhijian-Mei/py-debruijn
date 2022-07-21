@@ -103,10 +103,6 @@ if __name__ == '__main__':
     df = df.sort_values(by=0)
     df = df.reset_index(drop=True)
 
-    df = df[df[1] == 'Avastin_H']
-    df = df[df[0] == 'SEQUENCE_896_10mer_340.91']
-    print(df)
-    quit()
     template_dic = read_fasta(template_name)
     templates = list(template_dic.keys())
     contig_dic = read_fasta(contig_filepath)
