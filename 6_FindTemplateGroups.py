@@ -304,6 +304,15 @@ if __name__ == '__main__':
             print(''.join(sequence))
             message += ''.join(sequence) + '\n'
 
+        matched_length = 0
+        for i in range(len(template.sequence)):
+            if template.letters_correctRate[i] or template.unusedReads_match[i]:
+                matched_length += 1
+        coverage = matched_length/len(template.sequence)
+        if coverage < 0.5:
+            continue
+
+
         merged_result = []
         while len(result_sequences) < max(len(result_sequences), len(unusedReadsResultSequence)):
             result_sequences.append(list(' ' * len(template.sequence)))
@@ -323,7 +332,6 @@ if __name__ == '__main__':
                     sequence[i] = '<font color="blue">{}</font>'.format(sequence[i])
 
         merged_result = result_sequences
-
         step = 250
         print('-' * 100 + 'Merged Result' + '-' * 100)
         html += '*' * 100 + 'Merged Result' + '*' * 100 + '<br>'
