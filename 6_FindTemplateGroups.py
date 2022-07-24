@@ -36,7 +36,7 @@ class Contig:
         self.contig_interval = contig_interval
         self.rates = {}
         for i in range(len(self.sequence)):
-            self.rates[i] = 1
+            self.rates[i] = 0
 
 
 class fillingTemplate:
@@ -129,7 +129,7 @@ if __name__ == '__main__':
                 continue
             # if identity > 90:
             #     template_length_record[template_id] = len(template_dic[template_id])
-            if identity > best_identity:
+            if identity > best_identity and identity > 90 and len(template_dic[template_id]) > 200:
                 best_identity = identity
                 best_template = template_id
         # if len(template_length_record) == 0:
@@ -195,7 +195,11 @@ if __name__ == '__main__':
                         match = re.search(read, contig.sequence)
                         read_positional_scores = ast.literal_eval(position_scores[i])
                         for j in range(match.start(), match.end()):
-                            contig.rates[j] = contig.rates[j] * (1 - read_positional_scores[j - match.start()])
+                            positional_score = 1 - read_positional_scores[j - match.start()]
+                            if positional_score == 0:
+                                contig.rates[j] += -20
+                            else:
+                                contig.rates[j] += np.log((1 - read_positional_scores[j - match.start()]))
 
         print()
         print('*' * 500)
@@ -214,6 +218,11 @@ if __name__ == '__main__':
                     continue
                 template_points = [x for x in range(contig.template_interval[0] - 1, contig.template_interval[1])]
                 contig_points = [x for x in range(contig.contig_interval[0] - 1, contig.contig_interval[1])]
+                if contig.id == 'SEQUENCE_551_10mer_1277.19':
+                    print(template.id)
+                    for point in contig_points:
+                        print(contig.sequence[point],end='')
+                    quit()
                 for i in range(len(template_points)):
                     template_point = template_points[i]
                     contig_point = contig_points[i]
@@ -223,9 +232,8 @@ if __name__ == '__main__':
                         current_template_position[current_contig_letter] = contig.rates[contig_point]
                     else:
                         current_template_position[current_contig_letter] = current_template_position[
-                                                                               current_contig_letter] * contig.rates[
+                                                                               current_contig_letter] + contig.rates[
                                                                                contig_point]
-
         position_keys = list(template.letters_correctRate.keys())
         result_sequences = []
         for key in position_keys:

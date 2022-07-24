@@ -8,7 +8,6 @@ from generateTemplatesBlastReport import read_fasta
 from Bio.Blast.Applications import NcbiblastpCommandline
 
 if __name__ == '__main__':
-    template_name = 'templates/homo_templates.fasta'
     froot = 'avastin_5-10mer_0.6_2'
     contig_filepath = f'{froot}/{froot}_modified_sorted.fasta'
 
@@ -28,8 +27,7 @@ if __name__ == '__main__':
             DF = DF.append(temp)
     DF.reset_index(inplace=True, drop=True)
 
-    template_dic = read_fasta(template_name, 'Homo')
-    templates = list(template_dic.keys())
+
     contig_dic = read_fasta(contig_filepath)
     contigs = list(contig_dic.values())
 
@@ -39,12 +37,13 @@ if __name__ == '__main__':
     unused_reads = []
     for i in range(len(reads)):
         read = reads[i]
-        for j in range(len(contigs)):
-            contig = contigs[j]
-            if read in contig:
-                break
-            if read not in contig and (j == len(contigs)-1):
-                unused_reads.append(read)
+        # for j in range(len(contigs)):
+        #     contig = contigs[j]
+        #     if read in contig:
+        #         break
+        #     if read not in contig and (j == len(contigs)-1):
+        #         unused_reads.append(read)
+        unused_reads.append(read)
 
     unused_reads = list(Counter(unused_reads))
 
