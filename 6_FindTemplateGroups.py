@@ -98,7 +98,8 @@ if __name__ == '__main__':
             DF = DF.append(temp)
     DF.reset_index(inplace=True, drop=True)
 
-    df = pd.read_csv(f'{froot}/{froot}_blasthomoTemplate.m8', delimiter='\t', header=None)
+    # df = pd.read_csv(f'{froot}/{froot}_blasthomoTemplate.m8', delimiter='\t', header=None)
+    df = pd.read_csv(f'{froot}/rapsearch_outputs_refactor.m8',delimiter='\t',header=None)
     df = df[df[2] >= 80]
     df = df.sort_values(by=0)
     df = df.reset_index(drop=True)
@@ -121,6 +122,7 @@ if __name__ == '__main__':
         current_contig = contigs[0]
         best_identity = 0
         best_template = None
+        longest_length = 0
         for template_id in templates:
             label = current_contig + '+' + template_id
             try:
@@ -129,7 +131,8 @@ if __name__ == '__main__':
                 continue
             # if identity > 90:
             #     template_length_record[template_id] = len(template_dic[template_id])
-            if identity > best_identity and identity > 90 and len(template_dic[template_id]) > 200:
+            if identity >= best_identity and identity > 90 and len(template_dic[template_id]) > longest_length:
+                longest_length = len(template_dic[template_id])
                 best_identity = identity
                 best_template = template_id
         # if len(template_length_record) == 0:
@@ -218,11 +221,6 @@ if __name__ == '__main__':
                     continue
                 template_points = [x for x in range(contig.template_interval[0] - 1, contig.template_interval[1])]
                 contig_points = [x for x in range(contig.contig_interval[0] - 1, contig.contig_interval[1])]
-                if contig.id == 'SEQUENCE_551_10mer_1277.19':
-                    print(template.id)
-                    for point in contig_points:
-                        print(contig.sequence[point],end='')
-                    quit()
                 for i in range(len(template_points)):
                     template_point = template_points[i]
                     contig_point = contig_points[i]

@@ -21,3 +21,6 @@ test.py
 *.md
 *.out
 *.clstr
+*.info
+homoTemplates-db-file
+*.aln
