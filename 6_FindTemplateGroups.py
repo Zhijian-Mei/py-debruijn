@@ -1,10 +1,11 @@
+import argparse
 import json
 import os
 import re
 from pprint import pprint
 import ast
 import numpy as np
-
+import subprocess
 import pandas as pd
 from tqdm import trange
 from Bio.Blast.Applications import NcbiblastpCommandline
@@ -75,11 +76,18 @@ def toHTML(string):
     result = ''.join(result)
 
     return result
+def get_args():
+    parser = argparse.ArgumentParser()
+    # start
+    parser.add_argument('-froot', type=str)
+    args = parser.parse_args()
+    return args
 
 
 if __name__ == '__main__':
+    args = get_args()
     template_name = 'templates/homo_templates.fasta'
-    froot = 'avastin_5-10mer_0.6_2'
+    froot = args.froot
     contig_filepath = f'{froot}/{froot}_modified_sorted.fasta'
 
     settingFile = open(f'{froot}/setting.json', 'r')
@@ -98,8 +106,11 @@ if __name__ == '__main__':
             DF = DF.append(temp)
     DF.reset_index(inplace=True, drop=True)
 
-    # df = pd.read_csv(f'{froot}/{froot}_blasthomoTemplate.m8', delimiter='\t', header=None)
+    os.system(f'prerapsearch -d {template_name} -n templates/temp-db')
+    os.system(f'rapsearch -q {froot}/{froot}_modified_sorted.fasta -d templates/temp-db -o {froot}/rapsearch_outputs -z 6')
+    os.system(f'python processRapsearchM8.py -input {froot}/rapsearch_outputs.m8 -output {froot}/rapsearch_outputs_refactor.m8')
     df = pd.read_csv(f'{froot}/rapsearch_outputs_refactor.m8',delimiter='\t',header=None)
+    # df = pd.read_csv(f'{froot}/{froot}_blasthomoTemplate.m8',delimiter='\t',header=None)
     df = df[df[2] >= 80]
     df = df.sort_values(by=0)
     df = df.reset_index(drop=True)
@@ -257,14 +268,18 @@ if __name__ == '__main__':
         with open(f'{froot}/temp.fasta', 'w') as f:
             f.write('>{}\n'.format(template.id))
             f.write(template.sequence)
-        out = f'{froot}/{froot}_unusedReadsBlastTemplate.m8'
+        out = f'{froot}/{froot}_unusedReadsBlastTemplate_refactor.m8'
         query = f'{froot}/unusedReads.fasta'
-        command = NcbiblastpCommandline(query=query,
-                                        subject=f'{froot}/temp.fasta',
-                                        outfmt=6,
-                                        out=out,
-                                        )
-        command()
+        # command = NcbiblastpCommandline(query=query,
+        #                                 subject=f'{froot}/temp.fasta',
+        #                                 outfmt=6,
+        #                                 out=out,
+        #                                 )
+        # command()
+        os.system(f'prerapsearch -d {froot}/temp.fasta -n {froot}/temp')
+        os.system(f'rapsearch -q {query} -d {froot}/temp -o {froot}/{froot}_unusedReadsBlastTemplate')
+        os.system(f'python processRapsearchM8.py -input {froot}/{froot}_unusedReadsBlastTemplate.m8 -output {out}')
+
 
         unusedReadsTemplateResults = pd.read_csv(out, delimiter='\t', header=None)
         unusedReadsTemplateResults = unusedReadsTemplateResults[unusedReadsTemplateResults[2] >= 90]

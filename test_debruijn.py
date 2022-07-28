@@ -33,11 +33,30 @@ def read_reads(fname):
     return reads
 
 
-def get_kmer_count_from_sequence(sequences, k):
+def get_kmers(sequences, k):
     """
     Returns dictionary with keys representing all possible kmers in a sequence
     and values counting their occurrence in the sequence.
     """
+    short_sequences = []
+    for sequence in sequences:
+        if len(sequence) < k:
+            short_sequences.append(sequence)
+    for sequence in short_sequences:
+        sequences.remove(sequence)
+    for short_sequence in short_sequences:
+        concat = False
+        for i in range(len(sequences)):
+            sequence = sequences[i]
+            if sequence[len(sequence)-3:] == short_sequence[:3]:
+                sequences[i] = sequence + short_sequence[3:]
+                concat = True
+            if short_sequence[len(short_sequence)-3:] == sequence[:3]:
+                sequences[i] = short_sequence + sequence[3:]
+                concat = True
+        if concat:
+            short_sequences.remove(short_sequence)
+    # print('111111111111inputs: ',sequences)
     # dict to store kmers
     kmers = {}
     for sequence in sequences:
@@ -54,7 +73,7 @@ def get_kmer_count_from_sequence(sequences, k):
             else:
                 kmers[kmer] = 1
 
-    return kmers
+    return list(kmers.keys())
 
 
 def get_graph_from_kmers(kmers, k):
@@ -78,11 +97,35 @@ def get_graph_from_kmers(kmers, k):
 
 
 def get_graph_from_reads(reads, k):
+    # a = k-1
+    # short_sequences = []
+    # for sequence in reads:
+    #     if len(sequence) <= k:
+    #         short_sequences.append(sequence)
+    # for sequence in short_sequences:
+    #     reads.remove(sequence)
+    #
+    # for short_sequence in short_sequences:
+    #     concat = False
+    #     for i in range(len(reads)):
+    #         sequence = reads[i]
+    #         if sequence[len(sequence)-a:] == short_sequence[:a]:
+    #             reads[i] = sequence + short_sequence[a:]
+    #             concat = True
+    #         elif short_sequence[len(short_sequence)-a:] == sequence[:a]:
+    #             reads[i] = short_sequence + sequence[a:]
+    #             concat = True
+    #     if concat:
+    #         short_sequences.remove(short_sequence)
+
+    # print('inputs before: ',reads)
+
     edges = dict()
     vertices = dict()
     for index in trange(len(reads)):
         read = reads[index]
         i = 0
+        # print(i + k,len(read),read,i + k < len(read))
         while i + k < len(read):
             v1 = read[i:i + k]
             v2 = read[i + 1:i + k + 1]
@@ -102,8 +145,9 @@ def get_graph_from_reads(reads, k):
                 vertices[v2].indegree += 1
                 edges[v2] = []
             i += 1
-
+    # print('input after',edges)
     return vertices, edges
+
 
 
 def pruningEdges(edges, threshold):
@@ -155,7 +199,6 @@ def pruningErrorContigFromHead(current, edges, vertices, vec, output, depth, alr
         vec.pop()
         if vec not in output:
             if edge_count_table[name] < 2:
-                print(name)
                 output.append(copy.deepcopy(vec))
         return
     for i in range(len(edges[current])):
@@ -168,6 +211,8 @@ def construct_graph(reads, k, threshold=3, final=False):
     """ Construct de bruijn graph from sets of short reads with k length word"""
     pull_out_read = []
     vertices, edges = get_graph_from_reads(reads, k)
+    # vertices,edges = get_graph_from_kmers(get_kmers(reads,k),k)
+    # print(1,edges)
     edge_count_table = dict()
     for edge in edges:
         counter = Counter(edges[edge])
@@ -182,7 +227,7 @@ def construct_graph(reads, k, threshold=3, final=False):
     print('number of {}mer: '.format(k), len(vertices))
 
     edges = pruningEdges(edges, threshold)
-
+    # print(2,edges)
     branch_kmer = []
     count = 0
     for edge in list(edges):
@@ -204,7 +249,7 @@ def construct_graph(reads, k, threshold=3, final=False):
                 if item not in already_pull_out and item not in branch_kmer:
                     already_pull_out.append(item)
                     edges.pop(item)
-
+    # print(3,edges)
 
     starts = []
     for k in list(vertices.keys()):
@@ -290,14 +335,12 @@ def output_contigs(g, branch_kmer, already_pull_out):
     contig = []
     for i in trange(len(starts)):
         start = starts[i]
-        # print('start=', start)
         current = start
         vec = []
         output = []
         contig_copy = []
         DFS(current, E, vec, output, contig_copy, branch_kmer, already_pull_out)
         contig.extend(contig_copy)
-        # print('*' * 50)
 
     return contig
 

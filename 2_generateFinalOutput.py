@@ -17,7 +17,7 @@ def checkHeadToTail(c1,contigs,k):
             result = result + c2[k:]
     return result
 
-froot = 'Ab_1_5-10mer_0.5_1'
+froot = 'avastin_5-10mer_0.6_2'
 contigs = read_reads(f'{froot}/{froot}.fasta')
 f = open(f'{froot}/setting.json')
 setting = json.load(f)

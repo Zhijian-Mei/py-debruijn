@@ -7,14 +7,14 @@ def read_fasta(fname):
 
     for i in range(len(lines)):
         line = lines[i]
-        if '9606' in line:
+        if '10090' in line:
             fasta[line] = lines[i+1]
     return fasta
 
-fasta = read_fasta('homo_template.fasta')
+fasta = read_fasta('mus_templates.fasta')
 
 
-outfile = 'homo_templates.fasta'
+outfile = 'mus_templates.fasta'
 f = open(outfile,'w')
 for key in fasta.keys():
     f.writelines(key)

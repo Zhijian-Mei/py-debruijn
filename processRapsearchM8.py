@@ -1,9 +1,21 @@
+import argparse
 
 import pandas as pd
 from tqdm import trange
 
-froot= 'avastin_5-10mer_0.6_2'
-file = open(f'{froot}/rapsearch_outputs.m8',mode='r+')
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    # start
+    parser.add_argument('-input', type=str)
+    parser.add_argument('-output',type=str)
+    args = parser.parse_args()
+    return args
+
+args = get_args()
+path = args.input
+
+file = open(path,mode='r+')
 lines = file.readlines()
 file.close()
 df = pd.DataFrame(columns=[0,1,2,3,4,5,6,7,8,9,10,11])
@@ -21,5 +33,5 @@ for i in trange(len(lines)):
         aline = []
 
 df = pd.DataFrame(outlines,columns=[0,1,2,3,4,5,6,7,8,9,10,11])
-
-df.to_csv(f'{froot}/rapsearch_outputs_refactor.m8',index=False,sep='\t',header=None)
+out = args.output
+df.to_csv(out,index=False,sep='\t',header=False)

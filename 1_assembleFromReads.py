@@ -1,10 +1,11 @@
+import copy
 import json
 import os
 
 from collections import Counter
 import sys
 
-sys.setrecursionlimit(10000)
+
 import pandas as pd
 import test_debruijn as db
 
@@ -17,12 +18,12 @@ def getScore(edge_count_table, contig, k):
 
 
 sequences = []
-score_cut = 0.5
-threshold = 1
-k_lowerlimit = 5
-k_upperlimit = 10
+score_cut = 0.2
+threshold = 2
+k_lowerlimit = 2
+k_upperlimit = 4
 
-for root, dir, files in os.walk('Ab_1/Ab_1'):
+for root, dir, files in os.walk('BSA/all'):
     root = root + '/'
     for file in files:
         filename = root + file
@@ -38,9 +39,8 @@ for root, dir, files in os.walk('Ab_1/Ab_1'):
 
 sequences = Counter(sequences)
 sequences = list(sequences.keys())
-print(len(sequences))
 
-
+# sequences = ['EVQLVE','QLVAPG','LVESGGAL','LVESGGGL']
 for k in range(k_lowerlimit, k_upperlimit + 1):
     if k <= k_upperlimit - 1:
         g, pull_out_read, branch_kmer, already_pull_out, edge_count_table = db.construct_graph(sequences, k,
@@ -48,20 +48,20 @@ for k in range(k_lowerlimit, k_upperlimit + 1):
     else:
         g, pull_out_read, branch_kmer, already_pull_out, edge_count_table = db.construct_graph(sequences, k,
                                                                                                threshold=threshold, final=True)
-
     sequences = db.output_contigs(g, branch_kmer, already_pull_out)
     sequences.sort(key=lambda x: getScore(edge_count_table, x, k), reverse=True)
     if k == k_upperlimit:
-        froot = 'Ab_1_{}-{}mer_{}_{}'.format(k_lowerlimit,k_upperlimit, score_cut,threshold)
+        froot = 'BSA_{}-{}mer_{}_{}'.format(k_lowerlimit,k, score_cut,threshold)
         os.mkdir(froot)
         setting = {'score_cut': score_cut, 'threshold': threshold, 'k_lowerlimit': k_lowerlimit,
-                   'k_upperlimit': k_upperlimit}
+                   'k_upperlimit': k}
         with open(f'{froot}/setting.json','w') as fw:
             json.dump(setting,fw,indent=4)
         outFile = open(f'{froot}/{froot}.fasta', mode='a+')
         for i in range(len(sequences)):
             outFile.writelines('>SEQUENCE_{}_{}mer\n{}\n'.format(i, k, sequences[i]))
         outFile.close()
+        break
     print('max length: ', len(max(sequences, key=lambda x: len(x))))
     print('number of output for k={}: '.format(k), len(sequences))
     if k <= k_upperlimit - 1:

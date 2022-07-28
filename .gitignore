@@ -24,3 +24,11 @@ test.py
 *.info
 homoTemplates-db-file
 *.aln
+avastin_5-10mer_0.6_2/temp
+*.tmp0
+*.clstr
+*.clstr
+*.idx
+BSA_5-10mer_0.6_2/temp
+*.clstr
+templates/temp-db
