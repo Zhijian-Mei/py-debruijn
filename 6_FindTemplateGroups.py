@@ -21,9 +21,9 @@ class Template:
         self.id = template_id
         self.contigArrays = []
         self.different_position = []
-        self.letters_correctRate = {}
+        self.letters_errorRate = {}
         for i in range(len(self.sequence)):
-            self.letters_correctRate[i] = {}
+            self.letters_errorRate[i] = {}
         self.unusedReads_match = {}
         for i in range(len(self.sequence)):
             self.unusedReads_match[i] = []
@@ -202,6 +202,7 @@ if __name__ == '__main__':
         for array_index in range(len(template.contigArrays)):
             contig_array = template.contigArrays[array_index]
             contig_array = sorted(contig_array, key=lambda x: x.template_interval[0])
+            template.contigArrays[array_index] = contig_array
             for contig in contig_array:
                 for i in range(len(reads)):
                     read = reads[i]
@@ -215,6 +216,40 @@ if __name__ == '__main__':
                             else:
                                 contig.rates[j] += np.log((1 - read_positional_scores[j - match.start()]))
 
+        minimun_contigs_array = []
+        start_contig = template.contigArrays[0][0]
+        for i in range(1, len(template.contigArrays)):
+            if template.contigArrays[i][0].template_interval[0]<start_contig.template_interval[0] \
+                    and \
+                    template.contigArrays[i][0].template_interval[1] > start_contig.template_interval[1]:
+                start_contig = template.contigArrays[i][0]
+        minimun_contigs_array.append(start_contig)
+        current_contig = start_contig
+        candidate_contigs = []
+        while True:
+            for array_index in range(len(template.contigArrays)):
+                contig_array = template.contigArrays[array_index]
+                for contig_index in range(len(contig_array)):
+                    contig = contig_array[contig_index]
+                    if current_contig.template_interval[0] < contig.template_interval[0] < current_contig.template_interval[1] < \
+                            contig.template_interval[1]:
+                        candidate_contigs.append(contig)
+            if len(candidate_contigs) == 0:
+                for array_index in range(len(template.contigArrays)):
+                    contig_array = template.contigArrays[array_index]
+                    for contig_index in range(len(contig_array)):
+                        contig = contig_array[contig_index]
+                        if current_contig.template_interval[1] <= contig.template_interval[0]:
+                            candidate_contigs.append(contig)
+            if len(candidate_contigs) == 0:
+                break
+            candidate_contigs = sorted(candidate_contigs,key=lambda x:x.template_interval[1],reverse=True)
+            current_contig = candidate_contigs[0]
+            minimun_contigs_array.append(current_contig)
+            candidate_contigs=[]
+        for contig in minimun_contigs_array:
+            print(contig.template_interval,end='')
+        quit()
         print()
         print('*' * 500)
         print(template.sequence)
@@ -235,7 +270,7 @@ if __name__ == '__main__':
                 for i in range(len(template_points)):
                     template_point = template_points[i]
                     contig_point = contig_points[i]
-                    current_template_position = template.letters_correctRate[template_point]
+                    current_template_position = template.letters_errorRate[template_point]
                     current_contig_letter = contig.sequence[contig_point]
                     if current_contig_letter not in current_template_position.keys():
                         current_template_position[current_contig_letter] = contig.rates[contig_point]
@@ -243,10 +278,10 @@ if __name__ == '__main__':
                         current_template_position[current_contig_letter] = current_template_position[
                                                                                current_contig_letter] + contig.rates[
                                                                                contig_point]
-        position_keys = list(template.letters_correctRate.keys())
+        position_keys = list(template.letters_errorRate.keys())
         result_sequences = []
         for key in position_keys:
-            candidate_letters = template.letters_correctRate[key]
+            candidate_letters = template.letters_errorRate[key]
             candidate_letters = dict(sorted(candidate_letters.items(), key=lambda item: item[1]))
             if candidate_letters != {}:
                 while len(result_sequences) < len(candidate_letters):
@@ -321,7 +356,7 @@ if __name__ == '__main__':
 
         matched_length = 0
         for i in range(len(template.sequence)):
-            if template.letters_correctRate[i] or template.unusedReads_match[i]:
+            if template.letters_errorRate[i] or template.unusedReads_match[i]:
                 matched_length += 1
         coverage = matched_length/len(template.sequence)
         if coverage < 0.5:
