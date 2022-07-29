@@ -254,7 +254,7 @@ if __name__ == '__main__':
                 candidate_contigs = []
 
         for contig in minimun_contigs_array:
-            print(contig.template_interval,end='')
+            print(contig.id)
         quit()
         print()
         print('*' * 500)
