@@ -241,12 +241,18 @@ if __name__ == '__main__':
                         contig = contig_array[contig_index]
                         if current_contig.template_interval[1] <= contig.template_interval[0]:
                             candidate_contigs.append(contig)
-            if len(candidate_contigs) == 0:
-                break
-            candidate_contigs = sorted(candidate_contigs,key=lambda x:x.template_interval[1],reverse=True)
-            current_contig = candidate_contigs[0]
-            minimun_contigs_array.append(current_contig)
-            candidate_contigs=[]
+                if len(candidate_contigs) == 0:
+                    break
+                candidate_contigs = sorted(candidate_contigs, key=lambda x: x.template_interval[0])
+                current_contig = candidate_contigs[0]
+                minimun_contigs_array.append(current_contig)
+                candidate_contigs = []
+            else:
+                candidate_contigs = sorted(candidate_contigs, key=lambda x: x.template_interval[1], reverse=True)
+                current_contig = candidate_contigs[0]
+                minimun_contigs_array.append(current_contig)
+                candidate_contigs = []
+
         for contig in minimun_contigs_array:
             print(contig.template_interval,end='')
         quit()
