@@ -216,14 +216,14 @@ if __name__ == '__main__':
                             else:
                                 contig.rates[j] += np.log((1 - read_positional_scores[j - match.start()]))
 
-        minimun_contigs_array = []
+        minimum_contigs_array = []
         start_contig = template.contigArrays[0][0]
         for i in range(1, len(template.contigArrays)):
             if template.contigArrays[i][0].template_interval[0]<start_contig.template_interval[0] \
                     and \
                     template.contigArrays[i][0].template_interval[1] > start_contig.template_interval[1]:
                 start_contig = template.contigArrays[i][0]
-        minimun_contigs_array.append(start_contig)
+        minimum_contigs_array.append(start_contig)
         current_contig = start_contig
         candidate_contigs = []
         while True:
@@ -245,17 +245,15 @@ if __name__ == '__main__':
                     break
                 candidate_contigs = sorted(candidate_contigs, key=lambda x: x.template_interval[0])
                 current_contig = candidate_contigs[0]
-                minimun_contigs_array.append(current_contig)
+                minimum_contigs_array.append(current_contig)
                 candidate_contigs = []
             else:
                 candidate_contigs = sorted(candidate_contigs, key=lambda x: x.template_interval[1], reverse=True)
                 current_contig = candidate_contigs[0]
-                minimun_contigs_array.append(current_contig)
+                minimum_contigs_array.append(current_contig)
                 candidate_contigs = []
 
-        for contig in minimun_contigs_array:
-            print(contig.id)
-        quit()
+
         print()
         print('*' * 500)
         print(template.sequence)
@@ -410,6 +408,13 @@ if __name__ == '__main__':
                 html += '<pre>' + sub_sequence + '</pre>'
 
             html += '<br>'
+        html += 'Minimum Contigs Array: ' + '<br>'
+        for contig in minimum_contigs_array:
+            colored_contig = list(contig.sequence)
+            for i in range(contig.contig_interval[0] - 1,contig.contig_interval[1]):
+                colored_contig[i] = '<font color="red">{}</font>'.format(colored_contig[i])
+            html += '<pre>' +''.join(colored_contig) + '</pre>'
+
 
     htmlFile.write(html)
     htmlFile.close()
