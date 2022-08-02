@@ -18,12 +18,12 @@ def getScore(edge_count_table, contig, k):
 
 
 sequences = []
-score_cut = 0.2
+score_cut = 0.6
 threshold = 2
-k_lowerlimit = 2
-k_upperlimit = 4
+k_lowerlimit = 5
+k_upperlimit = 10
 
-for root, dir, files in os.walk('BSA/all'):
+for root, dir, files in os.walk('Ab_1/Ab_1'):
     root = root + '/'
     for file in files:
         filename = root + file
@@ -51,7 +51,7 @@ for k in range(k_lowerlimit, k_upperlimit + 1):
     sequences = db.output_contigs(g, branch_kmer, already_pull_out)
     sequences.sort(key=lambda x: getScore(edge_count_table, x, k), reverse=True)
     if k == k_upperlimit:
-        froot = 'BSA_{}-{}mer_{}_{}'.format(k_lowerlimit,k, score_cut,threshold)
+        froot = 'Ab_1_{}-{}mer_{}_{}'.format(k_lowerlimit,k, score_cut,threshold)
         os.mkdir(froot)
         setting = {'score_cut': score_cut, 'threshold': threshold, 'k_lowerlimit': k_lowerlimit,
                    'k_upperlimit': k}

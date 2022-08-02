@@ -7,14 +7,14 @@ def read_fasta(fname):
 
     for i in range(len(lines)):
         line = lines[i]
-        if '10090' in line:
+        if '9844' in line:
             fasta[line] = lines[i+1]
     return fasta
 
-fasta = read_fasta('mus_templates.fasta')
+fasta = read_fasta('nanobody_template.fasta')
 
 
-outfile = 'mus_templates.fasta'
+outfile = 'nanobody_templates.fasta'
 f = open(outfile,'w')
 for key in fasta.keys():
     f.writelines(key)
