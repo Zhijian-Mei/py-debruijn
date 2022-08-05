@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import re
+import uuid
 from collections import Counter
 from pprint import pprint
 import ast
@@ -82,22 +83,28 @@ def get_args():
     parser = argparse.ArgumentParser()
     # start
     parser.add_argument('-froot', type=str)
+    parser.add_argument('-template', type=str)
+    parser.add_argument('-source', type=str)
     args = parser.parse_args()
     return args
+
+def NormalizeData(data):
+    return (data - np.min(data)) / (np.max(data) - np.min(data))
 
 
 if __name__ == '__main__':
     args = get_args()
-    template_name = 'templates/homo_templates.fasta'
+    template = args.template
+    template_name = f'templates/{template}_templates.fasta'
     froot = args.froot
     contig_filepath = f'{froot}/{froot}_modified_sorted.fasta'
 
     settingFile = open(f'{froot}/setting.json', 'r')
     setting = json.load(settingFile)
-    souceFilePath = 'avastin/avastin'
+    sourceFilePath = args.source
     DF = pd.DataFrame()
     sequences_scores = dict()
-    for root, dir, files in os.walk(souceFilePath):
+    for root, dir, files in os.walk(sourceFilePath):
         root = root + '/'
         for file in files:
             filename = root + file
@@ -185,6 +192,7 @@ if __name__ == '__main__':
     html_path = f'{froot}/{froot}_TemplateMatchReport.html'
     htmlFile = open(html_path, 'w')
     html = '''<!DOCTYPE html>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     <body>
     '''
     reads = DF['DENOVO'].values
@@ -404,7 +412,6 @@ if __name__ == '__main__':
 
         merged_result = result_sequences
         step = 250
-        # print('-' * 100 + 'Merged Result' + '-' * 100)
         html += '*' * 100 + 'Merged Result' + '*' * 100 + '<br>'
         html += 'Template ID: {}<br>'.format(template.id)
         for i in range(0, len(template.sequence), step):
@@ -426,12 +433,46 @@ if __name__ == '__main__':
 
             html += '<br>'
         html += 'Minimum Contigs Array (Blue part): ' + '<br>'
-        for contig in minimum_contigs_array:
+        for index in range(len(minimum_contigs_array)):
+            contig = minimum_contigs_array[index]
+            id = uuid.uuid4()
             colored_contig = list(contig.sequence)
             for i in range(contig.contig_interval[0] - 1,contig.contig_interval[1]):
                 colored_contig[i] = '<font color="blue">{}</font>'.format(colored_contig[i])
             html += '<pre>' + 'Template interval: '+ str(contig.template_interval) + ' | ' + 'Contig score: ' + str(round(findSupportReadScore(contig.sequence,sequences_scores),2)) + '</pre>'
-            html += '<pre>' +''.join(colored_contig) + '</pre>'
+            html += '<pre>' + ''.join(colored_contig) + '</pre>'
+            y = list(contig.rates.values())
+            y = list(NormalizeData(y))
+            x = [letter for letter in contig.sequence]
+            line_chart = f'''
+            <canvas id="{id}" style="width:100%;max-width:600px"></canvas>
+            <script>
+            var xValues = {str(x)};
+            var yValues = {str(y)};
+            
+            new Chart("{id}", 
+            '''
+
+            line_chart += '''{
+              type: "line",
+              data: {
+                labels: xValues,
+                datasets: [{
+                  fill: false,
+                  lineTension: 0,
+                  backgroundColor: "rgba(0,0,255,1.0)",
+                  borderColor: "rgba(0,0,255,0.1)",
+                  data: yValues
+                }]
+              },
+              options: {
+                legend: {display: false},
+              }
+            });
+            </script>                       
+            '''
+            html += line_chart + '<br>'
+
         html += 'unused Reads (Green part): ' + '<br>'
         for read in unused_reads_intervals.keys():
             count = 0
@@ -443,10 +484,13 @@ if __name__ == '__main__':
             read_sequence = list(read)
             for i in range(unused_reads_intervals[read][1][0]-1,unused_reads_intervals[read][1][1]):
                 read_sequence[i] = '<font color="green">{}</font>'.format(read_sequence[i])
-            html += '<pre>' + 'Template interval: ' + str(unused_reads_intervals[read][0]) + ' | ' + 'Read Count: ' + str(reads_count[read]) + '</pre>'
-            html += '<pre>' + ''.join(read_sequence) + '</pre>'
+            html += '<pre>' + 'Template interval: ' + str(unused_reads_intervals[read][0]) + ' | ' + 'Read Count: ' + str(reads_count[read]) + ' | ' + ''.join(read_sequence) + '</pre>'
+            # html += '<pre>' + ''.join(read_sequence) + '</pre>'
 
-
+    html += '''
+    </body>
+    </html>
+    '''
     htmlFile.write(html)
     htmlFile.close()
     outFile.write(message)
