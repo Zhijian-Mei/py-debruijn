@@ -19,7 +19,7 @@ def checkSubSequence(contig, output):
 
 
 if __name__ == '__main__':
-    froot = 'avastin_5-10mer_0.6_2'
+    froot = 'avastin_4-10mer_0.6_2'
     contigs = read_reads(f'{froot}/{froot}.fasta')
     with open(f'{froot}/setting.json') as f:
         setting = json.load(f)
