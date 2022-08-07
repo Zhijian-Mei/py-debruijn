@@ -20,7 +20,7 @@ def getScore(edge_count_table, contig, k):
 sequences = []
 score_cut = 0.6
 threshold = 2
-k_lowerlimit = 4
+k_lowerlimit = 5
 k_upperlimit = 10
 froot = 'avastin_{}-{}mer_{}_{}'.format(k_lowerlimit,k_upperlimit, score_cut,threshold)
 for root, dir, files in os.walk('avastin/avastin'):

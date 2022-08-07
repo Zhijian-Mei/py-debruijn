@@ -14,7 +14,7 @@ def findSupportReadScore(contig,score_table):
     return score
 
 if __name__ == '__main__':
-    froot = 'avastin_4-10mer_0.6_2'
+    froot = 'avastin_5-10mer_0.6_2'
     filePath='avastin/avastin'
     f = open(f'{froot}/setting.json')
     setting = json.load(f)
