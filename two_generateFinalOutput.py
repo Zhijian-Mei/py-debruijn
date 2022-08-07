@@ -28,14 +28,13 @@ if __name__ == '__main__':
 
     print(len(contigs))
     k = 4
-    already_chosen = []
+    nonconcatenatable = []
     for i in trange(100000):
         concat = False
-        current = random.choice(contigs)
-        if current in already_chosen:
-            continue
-        else:
-            already_chosen.append(current)
+        concatednatable = [item for item in contigs if item not in nonconcatenatable]
+        if len(concatednatable) == 0:
+            break
+        current = random.choice(concatednatable)
         for i in range(len(contigs)):
             current_head_to_contig_tail_concat = False
             current_tail_to_contig_head_concat = False
@@ -86,6 +85,8 @@ if __name__ == '__main__':
 
         if concat:
             contigs.remove(current)
+        else:
+            nonconcatenatable.append(current)
     print(len(contigs))
 
     outputs = []
@@ -94,7 +95,7 @@ if __name__ == '__main__':
             outputs.append(contig)
     print(len(outputs))
     print('max length after concat: ', len(max(outputs, key=lambda x: len(x))))
-
+    quit()
     k = setting['k_upperlimit']
     outFile = open(f'{froot}/{froot}_concatenated.fasta', mode='a+')
     for i in range(len(outputs)):
