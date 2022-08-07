@@ -95,7 +95,7 @@ if __name__ == '__main__':
             outputs.append(contig)
     print(len(outputs))
     print('max length after concat: ', len(max(outputs, key=lambda x: len(x))))
-    quit()
+
     k = setting['k_upperlimit']
     outFile = open(f'{froot}/{froot}_concatenated.fasta', mode='a+')
     for i in range(len(outputs)):
