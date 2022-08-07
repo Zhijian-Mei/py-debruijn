@@ -37,12 +37,12 @@ if __name__ == '__main__':
                 else:
                     sequences_scores[temp['DENOVO'][i]] = temp['Score'][i] + sequences_scores[temp['DENOVO'][i]]
 
-    contigs = read_reads(f'{froot}/{froot}_modified.fasta')
+    contigs = read_reads(f'{froot}/{froot}_concatenated.fasta')
     scores = []
 
     k=setting['k_upperlimit']
     contigs.sort(key=lambda x:findSupportReadScore(x,score_table=sequences_scores),reverse=True)
-    outFile = open(f'{froot}/{froot}_modified_sorted.fasta', mode='a+')
+    outFile = open(f'{froot}/{froot}_concatenated_sorted.fasta', mode='a+')
     for i in range(len(contigs)):
         outFile.writelines('>SEQUENCE_{}_{}mer_{}\n{}\n'.format(i,k,round(findSupportReadScore(contigs[i],sequences_scores),2),contigs[i]))
     outFile.close()

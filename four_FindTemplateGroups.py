@@ -97,7 +97,7 @@ if __name__ == '__main__':
     template = args.template
     template_name = f'templates/{template}_templates.fasta'
     froot = args.froot
-    contig_filepath = f'{froot}/{froot}_modified_sorted.fasta'
+    contig_filepath = f'{froot}/{froot}_concatenated_sorted.fasta'
 
     settingFile = open(f'{froot}/setting.json', 'r')
     setting = json.load(settingFile)
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     DF.reset_index(inplace=True, drop=True)
 
     os.system(f'prerapsearch -d {template_name} -n templates/temp-db')
-    os.system(f'rapsearch -q {froot}/{froot}_modified_sorted.fasta -d templates/temp-db -o {froot}/rapsearch_outputs -z 6')
+    os.system(f'rapsearch -q {froot}/{froot}_concatenated_sorted.fasta -d templates/temp-db -o {froot}/rapsearch_outputs -z 6')
     os.system(f'python processRapsearchM8.py -input {froot}/rapsearch_outputs.m8 -output {froot}/rapsearch_outputs_refactor.m8')
     df = pd.read_csv(f'{froot}/rapsearch_outputs_refactor.m8',delimiter='\t',header=None)
     # df = pd.read_csv(f'{froot}/{froot}_blasthomoTemplate.m8',delimiter='\t',header=None)

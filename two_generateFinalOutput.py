@@ -28,10 +28,14 @@ if __name__ == '__main__':
 
     print(len(contigs))
     k = 4
-
-    for ep in trange(10000):
+    already_chosen = []
+    for i in trange(100000):
         concat = False
         current = random.choice(contigs)
+        if current in already_chosen:
+            continue
+        else:
+            already_chosen.append(current)
         for i in range(len(contigs)):
             current_head_to_contig_tail_concat = False
             current_tail_to_contig_head_concat = False
@@ -92,7 +96,7 @@ if __name__ == '__main__':
     print('max length after concat: ', len(max(outputs, key=lambda x: len(x))))
 
     k = setting['k_upperlimit']
-    outFile = open(f'{froot}/{froot}_modified.fasta', mode='a+')
+    outFile = open(f'{froot}/{froot}_concatenated.fasta', mode='a+')
     for i in range(len(outputs)):
         outFile.writelines('>SEQUENCE_{}_{}mer\n{}\n'.format(i, k, outputs[i]))
     outFile.close()
