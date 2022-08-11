@@ -1,8 +1,7 @@
 import copy
 from collections import Counter
 import sys
-
-sys.setrecursionlimit(10000)
+from pprint import pprint
 from tqdm import trange
 
 
@@ -48,10 +47,10 @@ def get_kmers(sequences, k):
         concat = False
         for i in range(len(sequences)):
             sequence = sequences[i]
-            if sequence[len(sequence)-3:] == short_sequence[:3]:
+            if sequence[len(sequence) - 3:] == short_sequence[:3]:
                 sequences[i] = sequence + short_sequence[3:]
                 concat = True
-            if short_sequence[len(short_sequence)-3:] == sequence[:3]:
+            if short_sequence[len(short_sequence) - 3:] == sequence[:3]:
                 sequences[i] = short_sequence + sequence[3:]
                 concat = True
         if concat:
@@ -79,7 +78,7 @@ def get_kmers(sequences, k):
 def get_graph_from_kmers(kmers, k):
     edges = dict()
     vertices = dict()
-    for index in trange(len(kmers)):
+    for index in range(len(kmers)):
         kmer = kmers[index]
         vertices[kmer] = Node(kmer)
         edges[kmer] = []
@@ -119,13 +118,13 @@ def get_graph_from_reads(reads, k):
     #         short_sequences.remove(short_sequence)
 
     # print('inputs before: ',reads)
-
     edges = dict()
     vertices = dict()
-    for index in trange(len(reads)):
+    for index in range(len(reads)):
         read = reads[index]
+        if len(read) <= k:
+            print('*',read,k)
         i = 0
-        # print(i + k,len(read),read,i + k < len(read))
         while i + k < len(read):
             v1 = read[i:i + k]
             v2 = read[i + 1:i + k + 1]
@@ -146,8 +145,8 @@ def get_graph_from_reads(reads, k):
                 edges[v2] = []
             i += 1
     # print('input after',edges)
+    # print('wasted reads: ',wasted)
     return vertices, edges
-
 
 
 def pruningEdges(edges, threshold):
@@ -189,7 +188,6 @@ def pruningErrorContigFromBranch(current, edges, vertices, vec, output, depth, a
     vec.pop()
 
 
-
 def pruningErrorContigFromHead(current, edges, vertices, vec, output, depth, already_pull_out, edge_count_table):
     if depth == 0 or current in already_pull_out:
         return
@@ -213,6 +211,7 @@ def construct_graph(reads, k, threshold=3, final=False):
     vertices, edges = get_graph_from_reads(reads, k)
     # vertices,edges = get_graph_from_kmers(get_kmers(reads,k),k)
     # print(1,edges)
+
     edge_count_table = dict()
     for edge in edges:
         counter = Counter(edges[edge])
@@ -227,7 +226,9 @@ def construct_graph(reads, k, threshold=3, final=False):
     print('number of {}mer: '.format(k), len(vertices))
 
     edges = pruningEdges(edges, threshold)
-    # print(2,edges)
+    # for edge in edges:
+    #     print(edge,edges[edge])
+
     branch_kmer = []
     count = 0
     for edge in list(edges):
@@ -236,7 +237,7 @@ def construct_graph(reads, k, threshold=3, final=False):
             branch_kmer.append(edge)
     print('branch number: ', count)
 
-
+    # print(branch_kmer)
     already_pull_out = []
     for kmer in branch_kmer:
         vec = []
@@ -244,12 +245,17 @@ def construct_graph(reads, k, threshold=3, final=False):
         if kmer in already_pull_out:
             continue
         pruningErrorContigFromBranch(kmer, edges, vertices, vec, output, 5, already_pull_out)
+        # print(kmer,edges[kmer])
+        # print(output)
         for o in output:
             for item in o:
                 if item not in already_pull_out and item not in branch_kmer:
+                    # print(item)
                     already_pull_out.append(item)
                     edges.pop(item)
-    # print(3,edges)
+        # print('----------------')
+
+
 
     starts = []
     for k in list(vertices.keys()):
@@ -259,26 +265,23 @@ def construct_graph(reads, k, threshold=3, final=False):
     for start in starts:
         vec = []
         output = []
-        pruningErrorContigFromHead(start, edges, vertices, vec, output,5, already_pull_out, edge_count_table)
+        pruningErrorContigFromHead(start, edges, vertices, vec, output, 5, already_pull_out, edge_count_table)
         for o in output:
             for item in o:
                 if item not in already_pull_out and item not in branch_kmer:
                     already_pull_out.append(item)
                     edges.pop(item)
 
-
     if not final:
-        for index in trange(len(reads)):
-            read = reads[index]
+        for read in reads:
             for kmer in branch_kmer:
                 if kmer in read:
                     pull_out_read.append(read)
                     break
-
+    # pprint(pull_out_read)
     if final:
         pull_out_read = []
         branch_kmer = []
-
 
     return (vertices, edges), pull_out_read, branch_kmer, already_pull_out, edge_count_table
 
@@ -333,7 +336,7 @@ def output_contigs(g, branch_kmer, already_pull_out):
 
     print('Number of kmers have no income edges: ', len(starts))
     contig = []
-    for i in trange(len(starts)):
+    for i in range(len(starts)):
         start = starts[i]
         current = start
         vec = []
