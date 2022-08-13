@@ -103,12 +103,20 @@ if __name__ == '__main__':
     setting = json.load(settingFile)
     sourceFilePath = args.source
     DF = pd.DataFrame()
+    unused_reads = pd.DataFrame()
     sequences_scores = dict()
     for root, dir, files in os.walk(sourceFilePath):
         root = root + '/'
         for file in files:
             filename = root + file
             data = pd.read_csv(filename, delimiter='\t')
+
+            unused_reads_temp = data[data['Score'] >= 0.1]
+            unused_reads_temp = unused_reads_temp[-50 < unused_reads_temp['PPM Difference']]
+            unused_reads_temp = unused_reads_temp[unused_reads_temp['PPM Difference'] < 50]
+            unused_reads_temp.reset_index(inplace=True, drop=True)
+            unused_reads = unused_reads.append(unused_reads_temp)
+
             temp = data[data['Score'] >= setting['score_cut']]
             temp = temp[-50 < temp['PPM Difference']]
             temp = temp[temp['PPM Difference'] < 50]
@@ -121,6 +129,7 @@ if __name__ == '__main__':
             DF = DF.append(temp)
 
     DF.reset_index(inplace=True, drop=True)
+    unused_reads.reset_index(inplace=True,drop=True)
 
     os.system(f'prerapsearch -d {template_name} -n templates/temp-db')
     os.system(f'rapsearch -q {froot}/{froot}_sorted.fasta -d templates/temp-db -o {froot}/rapsearch_outputs -z 6')
@@ -196,10 +205,11 @@ if __name__ == '__main__':
     <body>
     '''
     reads = DF['DENOVO'].values
+    unused_reads = unused_reads['DENOVO'].values
     reads_count = Counter(reads)
     position_scores = DF['Positional Score'].values
 
-    unused_reads = list(Counter(reads))
+    unused_reads = list(Counter(unused_reads))
 
     with open(f'{froot}/unusedReads.fasta', 'w') as f:
         for i in range(len(unused_reads)):
@@ -337,12 +347,6 @@ if __name__ == '__main__':
 
         out = f'{froot}/{froot}_unusedReadsBlastTemplate_refactor.m8'
         query = f'{froot}/unusedReads.fasta'
-        # command = NcbiblastpCommandline(query=query,
-        #                                 subject=f'{froot}/temp.fasta',
-        #                                 outfmt=6,
-        #                                 out=out,
-        #                                 )
-        # command()
         os.system(f'prerapsearch -d {froot}/temp.fasta -n {froot}/temp')
         os.system(f'rapsearch -q {query} -d {froot}/temp -o {froot}/{froot}_unusedReadsBlastTemplate')
         os.system(f'python processRapsearchM8.py -input {froot}/{froot}_unusedReadsBlastTemplate.m8 -output {out}')
