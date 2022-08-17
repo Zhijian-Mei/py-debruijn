@@ -10,11 +10,7 @@ import numpy as np
 import subprocess
 import pandas as pd
 from tqdm import trange
-from Bio.Blast.Applications import NcbiblastpCommandline
 from generateTemplatesBlastReport import read_fasta
-from Bio import SeqIO
-from Bio.SeqRecord import SeqRecord
-from Bio.Seq import Seq
 from three_generateSortedOutput import findSupportReadScore
 
 
