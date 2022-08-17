@@ -49,6 +49,6 @@ if __name__ == '__main__':
         json.dump(setting, fw, indent=4)
     df.to_csv(f'{froot}/unused_reads.tsv',sep='\t')
 
-    os.system(f'python PredFull/predfull.py --input {froot}/unused_reads.tsv --model PredFull-master/pm.h5 --output {froot}/unused_reads_prediction.mgf')
+    os.system(f'python PredFull/predfull.py --input {froot}/unused_reads.tsv --model PredFull/pm.h5 --output {froot}/unused_reads_prediction.mgf')
 
 
