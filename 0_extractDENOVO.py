@@ -31,12 +31,14 @@ if __name__ == '__main__':
             filename = root + file
             data = pd.read_csv(filename, delimiter='\t')
             temp = data[data['Score']< score_cut]
+            temp = temp[temp['Score'] > 0]
             unused_reads.extend(temp['DENOVO'].values)
 
     unused_reads = list(Counter(unused_reads).keys())
     unused_reads = [x for x in unused_reads if len(x) > k_lowerlimit]
     print('number of unused reads: ',len(unused_reads))
-    os.mkdir(froot)
+
+
     df = pd.DataFrame()
 
     df['Peptide'] = unused_reads
@@ -45,10 +47,11 @@ if __name__ == '__main__':
     df['NCE'] = [25 for i in range(len(unused_reads))]
     setting = {'score_cut': score_cut, 'threshold': threshold, 'k_lowerlimit': k_lowerlimit,
                'k_upperlimit': k_upperlimit}
+
+    os.mkdir(froot)
     with open(f'{froot}/setting.json', 'w') as fw:
         json.dump(setting, fw, indent=4)
     df.to_csv(f'{froot}/unused_reads.tsv',sep='\t')
-
     os.system(f'python PredFull/predfull.py --input {froot}/unused_reads.tsv --model PredFull/pm.h5 --output {froot}/unused_reads_prediction.mgf')
 
 
