@@ -28,31 +28,24 @@ if __name__ == '__main__':
     source = f'{args.source}'
     froot = f'{args.source}_{k_lowerlimit}-{k_upperlimit}mer_{score_cut}_{threshold}'
     input_reads = []
+    unused_reads =[]
     read_path = f'{source}/{source}'
     spectrum_path = f'{source}/Spectrum'
     for read_filename in os.listdir(read_path):
         read_file = f'{read_path}/{read_filename}'
         data = pd.read_csv(read_file, delimiter='\t')
+
         temp = data[data['Score'] >= score_cut]
+        temp = temp[-50 < temp['PPM Difference']]
+        temp = temp[temp['PPM Difference'] < 50]
         input_reads.extend(temp['DENOVO'].values)
-        for spectrum_filename in os.listdir(spectrum_path):
-            if spectrum_filename in read_filename:
-                print(spectrum_filename,read_filename)
-                quit()
 
-    for root, dirs, files in os.walk(source):
-        read_path = f'{root}/{source}'
-        for file in files:
-            filename = root + file
-            data = pd.read_csv(filename, delimiter='\t')
-            temp = data[data['Score'] < score_cut]
-            # temp = temp[temp['Score'] > 0]
-            unused_reads=temp['DENOVO'].values
-            unused_reads = list(Counter(unused_reads).keys())
-            unused_reads = [x for x in unused_reads if type(x) is str and len(x) > k_lowerlimit]
+        temp = data[data['Score'] < score_cut]
+        temp = temp[temp['Score'] > 0]
+        unused_reads.extend(temp['DENOVO'].values)
 
-
-    quit()
+    unused_reads = list(Counter(unused_reads).keys())
+    unused_reads = [x for x in unused_reads if type(x) is str and len(x) > k_lowerlimit]
 
     df = pd.DataFrame()
 
@@ -71,9 +64,15 @@ if __name__ == '__main__':
     with open(f'{froot}/setting.json', 'w') as fw:
         json.dump(setting, fw, indent=4)
     df.to_csv(f'{froot}/unused_reads.tsv', sep='\t')
-    os.system(
-        f'python PredFull/predfull.py --input {froot}/unused_reads.tsv --model PredFull/pm.h5 --output {froot}/unused_reads_prediction.mgf'
-    )
-    os.system(
-        f'./msSLASH/bin/bruteforce  -e 1111466_E.mgf -l unused_reads_prediction.mgf -d empty.mgf'
-    )
+
+    # os.system(
+    #     f'python PredFull/predfull.py --input {froot}/unused_reads.tsv --model PredFull/pm.h5 --output {froot}/unused_reads_prediction.mgf'
+    # )
+
+    for spectrum_filename in os.listdir(spectrum_path):
+        spectrum_file = f'{spectrum_path}/{spectrum_filename}'
+        print(spectrum_file)
+        quit()
+        os.system(
+            f'./msSLASH/bin/bruteforce  -e 1111466_E.mgf -l unused_reads_prediction.mgf -d empty.mgf'
+        )
