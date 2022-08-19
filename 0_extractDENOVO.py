@@ -39,7 +39,7 @@ if __name__ == '__main__':
         data = pd.read_csv(read_file, delimiter='\t')
         for i in range(len(data)):
             title_denovo_dic[data['TITLE'][i]] = [data['DENOVO'][i],data['PPM Difference'][i]]
-            
+
         temp = data[data['Score'] >= score_cut]
         temp = temp[-50 < temp['PPM Difference']]
         temp = temp[temp['PPM Difference'] < 50]
@@ -87,7 +87,10 @@ if __name__ == '__main__':
         slashResult['DENOVO'] = np.nan
         slashResult['PPM Diff'] = np.nan
         for i in range(len(slashResult)):
-            data = title_denovo_dic[slashResult['Title'][i]]
-            slashResult['DENOVO'][i] = data[0]
-            slashResult['PPM Diff'][i] = data[1]
+            try:
+                data = title_denovo_dic[slashResult['Title'][i]]
+                slashResult['DENOVO'][i] = data[0]
+                slashResult['PPM Diff'][i] = data[1]
+            except:
+                continue
         slashResult.to_csv(f'{froot}/msSLASHresult_{spectrum_filename}.tsv',decimal='\t')
