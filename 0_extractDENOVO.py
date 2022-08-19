@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 from collections import Counter
+from pprint import pprint
 
 import numpy as np
 import pandas as pd
@@ -37,7 +38,9 @@ if __name__ == '__main__':
         read_file = f'{read_path}/{read_filename}'
         data = pd.read_csv(read_file, delimiter='\t')
         for i in range(len(data)):
-            title_denovo_dic[data['TITLE'][i]] = [data['DENOVO'][i],data['PPM Difference']]
+            title_denovo_dic[data['TITLE'][i]] = [data['DENOVO'][i],data['PPM Difference'][i]]
+        pprint(title_denovo_dic)
+        quit()
         temp = data[data['Score'] >= score_cut]
         temp = temp[-50 < temp['PPM Difference']]
         temp = temp[temp['PPM Difference'] < 50]
@@ -89,4 +92,3 @@ if __name__ == '__main__':
             slashResult['DENOVO'][i] = data[0]
             slashResult['PPM Diff'][i] = data[1]
         slashResult.to_csv(f'{froot}/msSLASHresult_{spectrum_filename}.tsv',decimal='\t')
-        
