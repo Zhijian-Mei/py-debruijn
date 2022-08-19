@@ -30,7 +30,8 @@ if __name__ == '__main__':
     input_reads = []
     read_path = f'{source}/{source}'
     spectrum_path = f'{source}/Spectrum'
-    for read_file in os.listdir(read_path):
+    for filename in os.listdir(read_path):
+        read_file = f'{read_path}/{filename}'
         data = pd.read_csv(read_file, delimiter='\t')
         temp = data[data['Score'] >= score_cut]
         input_reads.extend(temp['DENOVO'].values)
