@@ -33,6 +33,7 @@ if __name__ == '__main__':
         root = root + '/'
         for file in files:
             filename = root + file
+            print(root)
             print(filename)
             quit()
             data = pd.read_csv(filename, delimiter='\t')
