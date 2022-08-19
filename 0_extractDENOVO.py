@@ -28,11 +28,13 @@ if __name__ == '__main__':
     source = f'{args.source}'
     froot = f'{args.source}_{k_lowerlimit}-{k_upperlimit}mer_{score_cut}_{threshold}'
     input_reads = []
-    for root, dir, files in os.walk(source):
-        print(root,dir,files)
-        quit()
-        root = root + '/'
-        print(root)
+    read_path = f'{source}/{source}'
+    spectrum_path = f'{source}/Spectrum'
+    read_files = os.listdir(read_path)
+    print(read_files)
+    quit()
+    for root, dirs, files in os.walk(source):
+        read_path = f'{root}/{source}'
         for file in files:
             filename = root + file
             data = pd.read_csv(filename, delimiter='\t')
