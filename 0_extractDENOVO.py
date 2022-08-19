@@ -29,9 +29,11 @@ if __name__ == '__main__':
         root = root + '/'
         for file in files:
             filename = root + file
+            if '1111466_E' not in filename:
+                continue
             data = pd.read_csv(filename, delimiter='\t')
-            temp = data[data['Score']< score_cut]
-            temp = temp[temp['Score'] > 0]
+            temp = data[data['Score'] < score_cut]
+            temp = temp[temp['Score'] > 0.1]
             unused_reads.extend(temp['DENOVO'].values)
 
     unused_reads = list(Counter(unused_reads).keys())
