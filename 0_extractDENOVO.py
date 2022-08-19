@@ -3,6 +3,7 @@ import json
 import os
 from collections import Counter
 
+import numpy as np
 import pandas as pd
 
 
@@ -31,10 +32,12 @@ if __name__ == '__main__':
     unused_reads =[]
     read_path = f'{source}/{source}'
     spectrum_path = f'{source}/Spectrum'
+    title_denovo_dic = dict()
     for read_filename in os.listdir(read_path):
         read_file = f'{read_path}/{read_filename}'
         data = pd.read_csv(read_file, delimiter='\t')
-
+        for i in range(len(data)):
+            title_denovo_dic[data['TITLE'][i]] = [data['DENOVO'][i],data['PPM Difference']]
         temp = data[data['Score'] >= score_cut]
         temp = temp[-50 < temp['PPM Difference']]
         temp = temp[temp['PPM Difference'] < 50]
@@ -79,5 +82,6 @@ if __name__ == '__main__':
             f'./msSLASH/bin/bruteforce  -e {spectrum_file} -l {froot}/unused_reads_prediction.mgf -d {froot}/empty.mgf -o {froot}/msSLASHresult_{spectrum_filename}.tsv'
         )
         slashResult = pd.read_csv(f'{froot}/msSLASHresult_{spectrum_filename}.tsv',sep='\t')
-        print(slashResult)
+        slashResult['DENOVO'] = [np.nan * len(slashResult)]
+        print(slashResult['DENOVO'])
         quit()
