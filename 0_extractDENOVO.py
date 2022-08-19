@@ -38,6 +38,8 @@ if __name__ == '__main__':
             # temp = temp[temp['Score'] > 0]
             unused_reads=temp['DENOVO'].values
             unused_reads = list(Counter(unused_reads).keys())
+            print(unused_reads)
+            quit()
             unused_reads = [x for x in unused_reads if len(x) > k_lowerlimit]
     quit()
 
