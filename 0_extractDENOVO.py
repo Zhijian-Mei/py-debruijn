@@ -65,9 +65,9 @@ if __name__ == '__main__':
         json.dump(setting, fw, indent=4)
     df.to_csv(f'{froot}/unused_reads.tsv', sep='\t')
 
-    os.system(
-        f'python PredFull/predfull.py --input {froot}/unused_reads.tsv --model PredFull/pm.h5 --output {froot}/unused_reads_prediction.mgf'
-    )
+    # os.system(
+    #     f'python PredFull/predfull.py --input {froot}/unused_reads.tsv --model PredFull/pm.h5 --output {froot}/unused_reads_prediction.mgf'
+    # )
     try:
         os.system(f'touch {froot}/empty.mgf')
     except:
@@ -76,5 +76,5 @@ if __name__ == '__main__':
     for spectrum_filename in os.listdir(spectrum_path):
         spectrum_file = f'{spectrum_path}/{spectrum_filename}'
         os.system(
-            f'./msSLASH/bin/bruteforce  -e {spectrum_file} -l {froot}/unused_reads_prediction.mgf -d {froot}/empty.mgf -o {froot}'
+            f'./msSLASH/bin/bruteforce  -e {spectrum_file} -l {froot}/unused_reads_prediction.mgf -d {froot}/empty.mgf'
         )
