@@ -39,8 +39,7 @@ if __name__ == '__main__':
         data = pd.read_csv(read_file, delimiter='\t')
         for i in range(len(data)):
             title_denovo_dic[data['TITLE'][i]] = [data['DENOVO'][i],data['PPM Difference'][i]]
-        pprint(title_denovo_dic)
-        quit()
+            
         temp = data[data['Score'] >= score_cut]
         temp = temp[-50 < temp['PPM Difference']]
         temp = temp[temp['PPM Difference'] < 50]
