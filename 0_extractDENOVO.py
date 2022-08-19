@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     unused_reads = list(Counter(unused_reads).keys())
     unused_reads = [x for x in unused_reads if type(x) is str and len(x) > k_lowerlimit]
-
+    print('number of unused reads: ', len(unused_reads))
     df = pd.DataFrame()
 
     df['Peptide'] = unused_reads
