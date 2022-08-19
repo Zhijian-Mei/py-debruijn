@@ -93,4 +93,4 @@ if __name__ == '__main__':
                 slashResult['PPM Diff'][i] = data[1]
             except:
                 continue
-        slashResult.to_csv(f'{froot}/msSLASHresult_{spectrum_filename}.tsv',decimal='\t')
+        slashResult.to_csv(f'{froot}/msSLASHresult_{spectrum_filename}.tsv',sep='\t')
