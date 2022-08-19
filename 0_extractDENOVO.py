@@ -83,5 +83,4 @@ if __name__ == '__main__':
         )
         slashResult = pd.read_csv(f'{froot}/msSLASHresult_{spectrum_filename}.tsv',sep='\t')
         slashResult['DENOVO'] = np.nan
-        print(slashResult['DENOVO'])
-        quit()
+        
