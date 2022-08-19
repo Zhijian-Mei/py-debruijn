@@ -96,6 +96,8 @@ if __name__ == '__main__':
         slashResults.append(slashResult)
     df = pd.DataFrame()
     for slashResult in slashResults:
+        print(slashResult)
+        quit()
         df.append(slashResult)
         df.reset_index(drop=True,inplace=True)
     df.to_csv(f'{froot}/msSLASHresult_merged.csv',na_rep=np.nan,header=False)
