@@ -76,5 +76,5 @@ if __name__ == '__main__':
     for spectrum_filename in os.listdir(spectrum_path):
         spectrum_file = f'{spectrum_path}/{spectrum_filename}'
         os.system(
-            f'./msSLASH/bin/bruteforce  -e {spectrum_file} -l {froot}/unused_reads_prediction.mgf -d {froot}/empty.mgf -o {froot}/msSLASHresult.tsv'
+            f'./msSLASH/bin/bruteforce  -e {spectrum_file} -l {froot}/unused_reads_prediction.mgf -d {froot}/empty.mgf -o {froot}/msSLASHresult_{spectrum_filename}.tsv'
         )
