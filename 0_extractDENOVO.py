@@ -25,7 +25,7 @@ if __name__ == '__main__':
     threshold = args.t
     k_lowerlimit = args.kl
     k_upperlimit = args.ku
-    source = f'{args.source}/{args.source}'
+    source = f'{args.source}'
     froot = f'{args.source}_{k_lowerlimit}-{k_upperlimit}mer_{score_cut}_{threshold}'
     input_reads = []
     for root, dir, files in os.walk(source):
