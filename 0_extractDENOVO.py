@@ -30,13 +30,15 @@ if __name__ == '__main__':
     input_reads = []
     read_path = f'{source}/{source}'
     spectrum_path = f'{source}/Spectrum'
-    for filename in os.listdir(read_path):
-        read_file = f'{read_path}/{filename}'
+    for read_filename in os.listdir(read_path):
+        read_file = f'{read_path}/{read_filename}'
         data = pd.read_csv(read_file, delimiter='\t')
         temp = data[data['Score'] >= score_cut]
         input_reads.extend(temp['DENOVO'].values)
-        print(input_reads)
-        quit()
+        for spectrum_filename in os.listdir(spectrum_path):
+            if spectrum_filename in read_filename:
+                print(spectrum_filename,read_filename)
+                quit()
 
     for root, dirs, files in os.walk(source):
         read_path = f'{root}/{source}'
