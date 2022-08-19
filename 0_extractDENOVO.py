@@ -77,7 +77,7 @@ if __name__ == '__main__':
         os.system(f'touch {froot}/empty.mgf')
     except:
         pass
-    slashResults = []
+    df = pd.DataFrame()
     for spectrum_filename in os.listdir(spectrum_path):
         spectrum_file = f'{spectrum_path}/{spectrum_filename}'
         os.system(
@@ -93,11 +93,8 @@ if __name__ == '__main__':
                 slashResult['PPM Diff'][i] = data[1]
             except:
                 continue
-        slashResults.append(slashResult)
-    df = pd.DataFrame()
-    for slashResult in slashResults:
-        print(slashResult)
-        quit()
         df.append(slashResult)
-        df.reset_index(drop=True,inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        print(df)
+        quit()
     df.to_csv(f'{froot}/msSLASHresult_merged.csv',na_rep=np.nan,header=False)
