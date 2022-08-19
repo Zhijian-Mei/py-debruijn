@@ -86,10 +86,11 @@ if __name__ == '__main__':
         slashResult = pd.read_csv(f'{froot}/msSLASHresult_{spectrum_filename}.tsv',sep='\t')
         slashResult['DENOVO'] = np.nan
         slashResult['PPM Diff'] = np.nan
+        print(slashResult)
+        quit()
         for i in range(len(slashResult)):
             try:
                 data = title_denovo_dic[slashResult['Title'][i]]
-                print(data)
                 slashResult['DENOVO'][i] = data[0]
                 slashResult['PPM Diff'][i] = data[1]
             except:
