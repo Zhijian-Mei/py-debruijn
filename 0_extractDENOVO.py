@@ -91,13 +91,11 @@ if __name__ == '__main__':
                 data = title_denovo_dic[slashResult['Title'][i]]
                 slashResult['DENOVO'][i] = data[0]
                 slashResult['PPM Diff'][i] = data[1]
-                print(slashResult)
-                quit()
             except:
                 continue
-        df.append(slashResult, ignore_index=True)
+
+        df = df.append(slashResult)
         df.reset_index(drop=True, inplace=True)
-        print(slashResult)
         print(df)
         quit()
     df.to_csv(f'{froot}/msSLASHresult_merged.csv',na_rep=np.nan,header=False)
