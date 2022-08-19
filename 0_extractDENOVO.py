@@ -29,6 +29,8 @@ if __name__ == '__main__':
     froot = f'{args.source}_{k_lowerlimit}-{k_upperlimit}mer_{score_cut}_{threshold}'
     input_reads = []
     for root, dir, files in os.walk(source):
+        print(root,dir,files)
+        quit()
         root = root + '/'
         print(root)
         for file in files:
