@@ -29,7 +29,7 @@ if __name__ == '__main__':
     froot = f'{args.source}_{k_lowerlimit}-{k_upperlimit}mer_{score_cut}_{threshold}'
 
     for root, dir, files in os.walk(source):
-
+        print(dir)
         root = root + '/'
         for file in files:
             filename = root + file
