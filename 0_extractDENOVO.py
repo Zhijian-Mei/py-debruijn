@@ -27,7 +27,7 @@ if __name__ == '__main__':
     k_upperlimit = args.ku
     source = f'{args.source}/{args.source}'
     froot = f'{args.source}_{k_lowerlimit}-{k_upperlimit}mer_{score_cut}_{threshold}'
-
+    input_reads = []
     for root, dir, files in os.walk(source):
         root = root + '/'
         print(root)
@@ -39,8 +39,7 @@ if __name__ == '__main__':
             unused_reads=temp['DENOVO'].values
             unused_reads = list(Counter(unused_reads).keys())
             unused_reads = [x for x in unused_reads if type(x) is str and len(x) > k_lowerlimit]
-            print(len(unused_reads))
-            quit()
+
 
     quit()
 
