@@ -32,10 +32,9 @@ for root, dir, files in os.walk('avastin/avastin'):
         temp = temp[-50<temp['PPM Difference']]
         temp = temp[temp['PPM Difference']<50]
         sequences.extend(temp['DENOVO'].values)
-        temp.reset_index(inplace=True)
-        sequences.extend(temp['DENOVO'].values)
-        for i in range(len(temp)):
-            sequences.append(temp['DENOVO'][i])
+
+
+
 
 sequences = Counter(sequences)
 sequences = list(sequences.keys())
