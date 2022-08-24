@@ -1,3 +1,4 @@
+import argparse
 import copy
 import json
 import os
@@ -8,7 +9,7 @@ from pprint import pprint
 
 import pandas as pd
 import test_debruijn as db
-
+from test_debruijn import read_reads
 
 def getScore(edge_count_table, contig, k):
     score = 0
@@ -16,53 +17,61 @@ def getScore(edge_count_table, contig, k):
         score += edge_count_table[contig[i:i + k + 1]]
     return score
 
+def get_args():
+    parser = argparse.ArgumentParser()
+    # start
+    parser.add_argument('-froot', type=str,required=True)
+    args = parser.parse_args()
+    return args
 
-sequences = []
-score_cut = 0.8
-threshold = 2
-k_lowerlimit = 5
-k_upperlimit = 8
-froot = 'avastin_{}-{}mer_{}_{}'.format(k_lowerlimit,k_upperlimit, score_cut,threshold)
-for root, dir, files in os.walk('avastin/avastin'):
-    root = root + '/'
-    for file in files:
-        filename = root + file
-        data = pd.read_csv(filename, delimiter='\t')
-        temp = data[data['Score'] >= score_cut]
-        temp = temp[-50<temp['PPM Difference']]
-        temp = temp[temp['PPM Difference']<50]
-        sequences.extend(temp['DENOVO'].values)
+if __name__ == '__main__':
+    sequences = []
+    args = get_args()
+    froot = args.froot
+    f = open(f'{froot}/setting.json')
+    setting = json.load(f)
+    score_cut = setting['score_cut']
+    k_lowerlimit = setting['k_lowerlimit']
+    k_upperlimit = setting['k_upperlimit']
+    threshold = setting['threshold']
+    for root, dir, files in os.walk('Ab_1/Ab_1'):
+        root = root + '/'
+        for file in files:
+            filename = root + file
+            data = pd.read_csv(filename, delimiter='\t')
+            temp = data[data['Score'] >= score_cut]
+            temp = temp[-50<=temp['PPM Difference']]
+            temp = temp[temp['PPM Difference']<=50]
+            sequences.extend(temp['DENOVO'].values)
 
 
 
 
-sequences = Counter(sequences)
-sequences = list(sequences.keys())
-
-# sequences = ['EVQLVE','QLVAPG','LVESGGAL','LVESGGGL']
-for k in range(k_lowerlimit, k_upperlimit + 1):
-    if k <= k_upperlimit - 1:
-        g, pull_out_read, branch_kmer, already_pull_out, edge_count_table = db.construct_graph(sequences, k,
-                                                                                               threshold=threshold)
-    else:
-        g, pull_out_read, branch_kmer, already_pull_out, edge_count_table = db.construct_graph(sequences, k,
-                                                                                               threshold=threshold, final=True)
-    sequences = db.output_contigs(g, branch_kmer, already_pull_out)
-    sequences.sort(key=lambda x: getScore(edge_count_table, x, k), reverse=True)
-    if k == k_upperlimit:
-        os.mkdir(froot)
-        setting = {'score_cut': score_cut, 'threshold': threshold, 'k_lowerlimit': k_lowerlimit,
-                   'k_upperlimit': k}
-        with open(f'{froot}/setting.json','w') as fw:
-            json.dump(setting,fw,indent=4)
-        outFile = open(f'{froot}/{froot}.fasta', mode='a+')
-        for i in range(len(sequences)):
-            outFile.writelines('>SEQUENCE_{}_{}mer\n{}\n'.format(i, k, sequences[i]))
-        outFile.close()
-        break
-    print('max length: ', len(max(sequences, key=lambda x: len(x))))
-    print('number of output for k={}: '.format(k), len(sequences))
-    if k <= k_upperlimit - 1:
-        sequences.extend(pull_out_read)
-        print('number of pull out read: ', len(pull_out_read))
+    sequences = Counter(sequences)
+    sequences = list(sequences.keys())
+    print(len(sequences))
+    sequences = read_reads(f'{froot}/input_reads.fasta')
+    print(len(sequences))
+    quit()
+    # sequences = ['EVQLVE','QLVAPG','LVESGGAL','LVESGGGL']
+    for k in range(k_lowerlimit, k_upperlimit + 1):
+        if k <= k_upperlimit - 1:
+            g, pull_out_read, branch_kmer, already_pull_out, edge_count_table = db.construct_graph(sequences, k,
+                                                                                                   threshold=threshold)
+        else:
+            g, pull_out_read, branch_kmer, already_pull_out, edge_count_table = db.construct_graph(sequences, k,
+                                                                                                   threshold=threshold, final=True)
+        sequences = db.output_contigs(g, branch_kmer, already_pull_out)
+        sequences.sort(key=lambda x: getScore(edge_count_table, x, k), reverse=True)
+        if k == k_upperlimit:
+            outFile = open(f'{froot}/{froot}.fasta', mode='a+')
+            for i in range(len(sequences)):
+                outFile.writelines('>SEQUENCE_{}_{}mer\n{}\n'.format(i, k, sequences[i]))
+            outFile.close()
+            break
+        print('max length: ', len(max(sequences, key=lambda x: len(x))))
+        print('number of output for k={}: '.format(k), len(sequences))
+        if k <= k_upperlimit - 1:
+            sequences.extend(pull_out_read)
+            print('number of pull out read: ', len(pull_out_read))
 

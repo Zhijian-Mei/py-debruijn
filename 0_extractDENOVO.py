@@ -102,10 +102,8 @@ if __name__ == '__main__':
     temp = df[df['TopScore'] >= 0.5]
     unused_reads = temp['TopPep'].values
     input_reads = list(Counter(input_reads).keys())
-    print(len(input_reads))
     input_reads.extend(unused_reads)
     input_reads = list(Counter(input_reads).keys())
-    print(len(input_reads))
     with open(f'{froot}/input_reads.fasta', 'w') as fw:
         for i in range(len(input_reads)):
             fw.write(f'>input_read{i}\n{input_reads[i]}\n')
