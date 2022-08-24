@@ -84,9 +84,11 @@ if __name__ == '__main__':
             f'./msSLASH/bin/bruteforce  -e {spectrum_file} -l {froot}/unused_reads_prediction.mgf -d {froot}/empty.mgf -o {froot}/msSLASHresult_{spectrum_filename}.tsv'
         )
         slashResult = pd.read_csv(f'{froot}/msSLASHresult_{spectrum_filename}.tsv',sep='\t')
+        print(slashResult)
         slashResult['DENOVO'] = np.nan
         slashResult['PPM Diff'] = np.nan
         print(slashResult)
+        quit()
         slashResult.to_csv('test.csv',na_rep=np.nan)
         quit()
         print('-'*50)
