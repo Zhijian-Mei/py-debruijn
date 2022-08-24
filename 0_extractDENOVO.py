@@ -41,12 +41,14 @@ if __name__ == '__main__':
             title_denovo_dic[data['TITLE'][i]] = [data['DENOVO'][i],data['PPM Difference'][i]]
 
         temp = data[data['Score'] >= score_cut]
-        temp = temp[-50 < temp['PPM Difference']]
-        temp = temp[temp['PPM Difference'] < 50]
+        temp = temp[-50 <= temp['PPM Difference']]
+        temp = temp[temp['PPM Difference'] <= 50]
         input_reads.extend(temp['DENOVO'].values)
 
         temp = data[data['Score'] < score_cut]
         temp = temp[temp['Score'] > 0]
+        temp = temp[-50 <= temp['PPM Difference']]
+        temp = temp[temp['PPM Difference'] <= 50]
         unused_reads.extend(temp['DENOVO'].values)
 
     unused_reads = list(Counter(unused_reads).keys())
@@ -84,14 +86,9 @@ if __name__ == '__main__':
             f'./msSLASH/bin/bruteforce  -e {spectrum_file} -l {froot}/unused_reads_prediction.mgf -d {froot}/empty.mgf -o {froot}/msSLASHresult_{spectrum_filename}.tsv'
         )
         slashResult = pd.read_csv(f'{froot}/msSLASHresult_{spectrum_filename}.tsv',sep='\t')
-        print(slashResult)
         slashResult['DENOVO'] = np.nan
         slashResult['PPM Diff'] = np.nan
-        print(slashResult)
-        quit()
         slashResult.to_csv('test.csv',na_rep=np.nan)
-        quit()
-        print('-'*50)
         for i in range(len(slashResult)):
             try:
                 data = title_denovo_dic[slashResult['Title'][i]]
@@ -99,11 +96,14 @@ if __name__ == '__main__':
                 slashResult['PPM Diff'][i] = data[1]
             except:
                 continue
-        print(slashResult)
-        print('-' * 50)
         df = df.append(slashResult)
-        print(df.head())
-        quit()
         df.reset_index(drop=True, inplace=True)
 
-    df.to_csv(f'{froot}/msSLASHresult_merged.csv',na_rep=np.nan)
+    temp = df[df['TopScore'] >= 0.5]
+    unused_reads = temp['TopPep'].values
+    input_reads = list(Counter(input_reads).keys())
+    print(len(input_reads))
+    input_reads.extend(unused_reads)
+    input_reads = list(Counter(input_reads).keys())
+    print(len(input_reads))
+    # df.to_csv(f'{froot}/msSLASHresult_merged.csv',na_rep=np.nan)
