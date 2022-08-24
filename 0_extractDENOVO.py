@@ -95,7 +95,7 @@ if __name__ == '__main__':
                 continue
         print(df)
         df = df.append(slashResult)
-        print(df)
+        print(df.head())
         quit()
         df.reset_index(drop=True, inplace=True)
 
