@@ -106,4 +106,7 @@ if __name__ == '__main__':
     input_reads.extend(unused_reads)
     input_reads = list(Counter(input_reads).keys())
     print(len(input_reads))
-    # df.to_csv(f'{froot}/msSLASHresult_merged.csv',na_rep=np.nan)
+    with open(f'{froot}/input_reads.fasta', 'w') as fw:
+        for i in range(len(input_reads)):
+            fw.write(f'>input_read{i}\n{input_reads[i]}\n')
+
