@@ -11,7 +11,7 @@
 *.pyc
 *.fa
 *.zip
-test.py
+
 *.tar
 *.tgz
 *.json
