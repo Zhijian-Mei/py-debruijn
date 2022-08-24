@@ -93,8 +93,10 @@ if __name__ == '__main__':
                 slashResult['PPM Diff'][i] = data[1]
             except:
                 continue
-
+        print(df)
         df = df.append(slashResult)
+        print(df)
+        quit()
         df.reset_index(drop=True, inplace=True)
 
     df.to_csv(f'{froot}/msSLASHresult_merged.csv',na_rep=np.nan)
