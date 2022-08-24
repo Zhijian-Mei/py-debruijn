@@ -122,8 +122,6 @@ def get_graph_from_reads(reads, k):
     vertices = dict()
     for index in range(len(reads)):
         read = reads[index]
-        if len(read) <= k:
-            print('*',read,k)
         i = 0
         while i + k < len(read):
             v1 = read[i:i + k]
