@@ -87,6 +87,8 @@ if __name__ == '__main__':
         slashResult['DENOVO'] = np.nan
         slashResult['PPM Diff'] = np.nan
         print(slashResult)
+        slashResult.to_csv('test.csv',na_rep=np.nan)
+        quit()
         print('-'*50)
         for i in range(len(slashResult)):
             try:
