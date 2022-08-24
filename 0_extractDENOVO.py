@@ -94,6 +94,7 @@ if __name__ == '__main__':
             except:
                 continue
         print(df)
+        print(slashResult)
         df = df.append(slashResult)
         print(df.head())
         quit()
