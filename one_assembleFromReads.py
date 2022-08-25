@@ -65,8 +65,6 @@ if __name__ == '__main__':
         sequences = db.output_contigs(g, branch_kmer, already_pull_out)
         sequences.sort(key=lambda x: getScore(edge_count_table, x, k), reverse=True)
         if k == k_upperlimit:
-            pprint(sequences)
-            quit()
             outFile = open(f'{froot}/{froot}.fasta', mode='a+')
             for i in range(len(sequences)):
                 outFile.writelines('>SEQUENCE_{}_{}mer\n{}\n'.format(i, k, sequences[i]))
