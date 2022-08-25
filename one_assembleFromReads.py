@@ -8,8 +8,8 @@ import sys
 from pprint import pprint
 
 import pandas as pd
-import test_debruijn as db
-from test_debruijn import read_reads
+import debruijn as db
+from debruijn import read_reads
 
 def getScore(edge_count_table, contig, k):
     score = 0

@@ -5,7 +5,7 @@ from collections import Counter
 import pandas as pd
 from tqdm import trange
 
-from test_debruijn import read_reads
+from debruijn import read_reads
 
 
 def read_scores(fp):

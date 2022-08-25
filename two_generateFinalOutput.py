@@ -6,7 +6,7 @@ from pprint import pprint
 import pandas as pd
 from tqdm import trange
 
-from test_debruijn import read_reads
+from debruijn import read_reads
 from three_generateSortedOutput import findSupportReadScore
 
 def checkSubSequence(contig, output):
@@ -21,7 +21,7 @@ def checkSubSequence(contig, output):
 
 
 if __name__ == '__main__':
-    froot = 'avastin_5-8mer_0.8_2'
+    froot = 'avastin_5-7mer_0.8_2'
     contigs = read_reads(f'{froot}/{froot}.fasta')
     with open(f'{froot}/setting.json') as f:
         setting = json.load(f)

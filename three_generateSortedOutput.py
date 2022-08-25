@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from tqdm import trange
 
-from test_debruijn import read_reads
+from debruijn import read_reads
 
 def findSupportReadScore(contig,score_table):
     score = 0
@@ -14,7 +14,7 @@ def findSupportReadScore(contig,score_table):
     return score
 
 if __name__ == '__main__':
-    froot = 'avastin_5-8mer_0.8_2'
+    froot = 'avastin_5-7mer_0.8_2'
     filePath='avastin/avastin'
     f = open(f'{froot}/setting.json')
     setting = json.load(f)

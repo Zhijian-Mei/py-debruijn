@@ -4,7 +4,7 @@ import os
 
 import pandas as pd
 
-from test_debruijn import read_reads
+from debruijn import read_reads
 from generateTemplatesBlastReport import read_fasta
 from three_generateSortedOutput import findSupportReadScore
 from four_FindTemplateGroups import Contig

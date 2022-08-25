@@ -102,6 +102,7 @@ if __name__ == '__main__':
     temp = df[df['TopScore'] >= 0.5]
     unused_reads = temp['TopPep'].values
     input_reads.extend(unused_reads)
+    input_reads = list(Counter(input_reads).keys())
     input_reads = [x for x in input_reads if type(x) is str and len(x) > k_lowerlimit]
     with open(f'{froot}/input_reads.fasta', 'w') as fw:
         for i in range(len(input_reads)):
