@@ -20,7 +20,7 @@ def getScore(edge_count_table, contig, k):
 def get_args():
     parser = argparse.ArgumentParser()
     # start
-    parser.add_argument('-froot', type=str,required=True)
+    parser.add_argument('-froot', type=str)
     args = parser.parse_args()
     return args
 
@@ -28,13 +28,15 @@ if __name__ == '__main__':
     sequences = []
     args = get_args()
     froot = args.froot
+    # froot = 'avastin_5-8mer_0.8_2'
     f = open(f'{froot}/setting.json')
     setting = json.load(f)
     score_cut = setting['score_cut']
     k_lowerlimit = setting['k_lowerlimit']
     k_upperlimit = setting['k_upperlimit']
     threshold = setting['threshold']
-    for root, dir, files in os.walk('Ab_1/Ab_1'):
+    source = setting['source']
+    for root, dir, files in os.walk(source):
         root = root + '/'
         for file in files:
             filename = root + file
@@ -47,11 +49,11 @@ if __name__ == '__main__':
 
 
 
-    sequences = Counter(sequences)
-    sequences = list(sequences.keys())
-    print(len(sequences))
+    # sequences = Counter(sequences)
+    # sequences = list(sequences.keys())
+    # print(len(sequences))
     sequences = read_reads(f'{froot}/input_reads.fasta')
-    print(len(sequences))
+    # print(len(sequences))
     # sequences = ['EVQLVE','QLVAPG','LVESGGAL','LVESGGGL']
     for k in range(k_lowerlimit, k_upperlimit + 1):
         if k <= k_upperlimit - 1:
@@ -63,6 +65,8 @@ if __name__ == '__main__':
         sequences = db.output_contigs(g, branch_kmer, already_pull_out)
         sequences.sort(key=lambda x: getScore(edge_count_table, x, k), reverse=True)
         if k == k_upperlimit:
+            pprint(sequences)
+            quit()
             outFile = open(f'{froot}/{froot}.fasta', mode='a+')
             for i in range(len(sequences)):
                 outFile.writelines('>SEQUENCE_{}_{}mer\n{}\n'.format(i, k, sequences[i]))

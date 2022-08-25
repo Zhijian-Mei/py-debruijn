@@ -61,7 +61,7 @@ if __name__ == '__main__':
     df['Type'] = ['HCD' for i in range(len(unused_reads))]
     df['NCE'] = [25 for i in range(len(unused_reads))]
     setting = {'score_cut': score_cut, 'threshold': threshold, 'k_lowerlimit': k_lowerlimit,
-               'k_upperlimit': k_upperlimit}
+               'k_upperlimit': k_upperlimit,'source':read_path }
 
     try:
         os.mkdir(froot)
@@ -101,9 +101,8 @@ if __name__ == '__main__':
 
     temp = df[df['TopScore'] >= 0.5]
     unused_reads = temp['TopPep'].values
-    input_reads = list(Counter(input_reads).keys())
     input_reads.extend(unused_reads)
-    input_reads = list(Counter(input_reads).keys())
+    input_reads = [x for x in input_reads if type(x) is str and len(x) > k_lowerlimit]
     with open(f'{froot}/input_reads.fasta', 'w') as fw:
         for i in range(len(input_reads)):
             fw.write(f'>input_read{i}\n{input_reads[i]}\n')

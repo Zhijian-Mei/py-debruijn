@@ -235,8 +235,15 @@ def construct_graph(reads, k, threshold=3, final=False):
             branch_kmer.append(edge)
     print('branch number: ', count)
 
-    # print(branch_kmer)
     already_pull_out = []
+    for read in reads:
+        for kmer in branch_kmer:
+            if kmer in read:
+                pull_out_read.append(read)
+                break
+
+    # print(branch_kmer)
+
     for kmer in branch_kmer:
         vec = []
         output = []
@@ -252,8 +259,7 @@ def construct_graph(reads, k, threshold=3, final=False):
                     already_pull_out.append(item)
                     edges.pop(item)
         # print('----------------')
-
-
+    # print(edges)
 
     starts = []
     for k in list(vertices.keys()):
@@ -270,12 +276,7 @@ def construct_graph(reads, k, threshold=3, final=False):
                     already_pull_out.append(item)
                     edges.pop(item)
 
-    if not final:
-        for read in reads:
-            for kmer in branch_kmer:
-                if kmer in read:
-                    pull_out_read.append(read)
-                    break
+
     # pprint(pull_out_read)
     if final:
         pull_out_read = []
