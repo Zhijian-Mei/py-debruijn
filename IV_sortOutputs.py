@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 
@@ -13,13 +14,22 @@ def findSupportReadScore(contig,score_table):
             score += score_table[read]
     return score
 
+def get_args():
+    parser = argparse.ArgumentParser()
+    # start
+    parser.add_argument('-froot', type=str)
+    args = parser.parse_args()
+    return args
+
+
+
 if __name__ == '__main__':
-    froot = 'avastin_5-7mer_0.8_2'
-    filePath='avastin/avastin'
+    args = get_args()
+    froot = args.froot
     f = open(f'{froot}/setting.json')
     setting = json.load(f)
     print(setting)
-
+    filePath = setting['source']
     score_cut = setting['score_cut']
     sequences_scores = dict()
     for root, dir, files in os.walk(filePath):

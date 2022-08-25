@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import random
@@ -7,7 +8,7 @@ import pandas as pd
 from tqdm import trange
 
 from debruijn import read_reads
-from three_generateSortedOutput import findSupportReadScore
+from IV_sortOutputs import findSupportReadScore
 
 def checkSubSequence(contig, output):
     for o in output:
@@ -16,12 +17,18 @@ def checkSubSequence(contig, output):
     return True
 
 
-
+def get_args():
+    parser = argparse.ArgumentParser()
+    # start
+    parser.add_argument('-froot', type=str)
+    args = parser.parse_args()
+    return args
 
 
 
 if __name__ == '__main__':
-    froot = 'avastin_5-7mer_0.8_2'
+    args = get_args()
+    froot = args.froot
     contigs = read_reads(f'{froot}/{froot}.fasta')
     with open(f'{froot}/setting.json') as f:
         setting = json.load(f)

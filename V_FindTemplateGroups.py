@@ -11,7 +11,7 @@ import subprocess
 import pandas as pd
 from tqdm import trange
 from generateTemplatesBlastReport import read_fasta
-from three_generateSortedOutput import findSupportReadScore
+from IV_sortOutputs import findSupportReadScore
 
 
 class Template:
