@@ -33,7 +33,7 @@ if __name__ == '__main__':
     with open(f'{froot}/setting.json') as f:
         setting = json.load(f)
     print(setting)
-    filePath = 'avastin/avastin'
+    filePath = setting['source']
     score_cut = setting['score_cut']
     sequences_scores = dict()
     for root, dir, files in os.walk(filePath):
