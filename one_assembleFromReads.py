@@ -49,11 +49,9 @@ if __name__ == '__main__':
 
 
 
-    # sequences = Counter(sequences)
     sequences = list(Counter(sequences).keys())
-    # print(len(sequences))
     # sequences = read_reads(f'{froot}/input_reads.fasta')
-    # print(len(sequences))
+    print(len(sequences))
     # sequences = ['EVQLVE','QLVAPG','LVESGGAL','LVESGGGL']
     for k in range(k_lowerlimit, k_upperlimit + 1):
         if k <= k_upperlimit - 1:
